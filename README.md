@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.3.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.4.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -19,13 +19,13 @@ Working now:
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
 - Checkboxes drawn the same in every browser, in the accent colour of the store
 - Works with the Breakdance "Shop Page" element
-- Works with product archives a page builder draws itself from the main query, such as the Breakdance post loop
+- Works with product archives a page builder draws itself from the main query: the Breakdance post loop and a Bricks query loop set as the main query
 - A settings page under WooCommerce > Filters, the same settings through WP-CLI and the WordPress Abilities API
 - English and Slovenian
-- Filtered pages are `noindex`
+- Filtered pages are `noindex`, also where Rank Math writes the robots tag
 - Updates from GitHub releases on the normal WordPress update screens
 
-Not yet: radio buttons and select as filter controls, a canonical link on filtered pages, Bricks query loops, product lists that run a query of their own and the `[products]` shortcode.
+Not yet: radio buttons and select as filter controls, product lists that run a query of their own (a builder loop that is not the main query) and the `[products]` shortcode. The canonical link stays with the SEO plugin of the store.
 
 ## Install and updates
 
@@ -63,13 +63,15 @@ On a Breakdance site the accent falls back to the brand colour.
 
 ### Shops drawn by a page builder loop
 
-A theme or page builder may draw the products of the shop and category pages itself, without the WooCommerce loop, for example with the Breakdance post loop on the product archive template. The products are filtered there as well. Three things tell the plugin where everything is:
+A theme or page builder may draw the products of the shop and category pages itself, without the WooCommerce loop, for example with the Breakdance post loop on the product archive template, or with a Bricks query loop that has "Is main query" switched on. The products are filtered there as well. Three things tell the plugin where everything is:
 
 1. Give the container that holds the result count, the sorting, the products and the page links the CSS class `sffilters-results`. The plugin swaps what is inside it.
 2. Put `[sffilters_bar]` inside that container, where the selected filters should show. On small screens it also holds the "Filters" button.
 3. Put `[sffilters_ordering]` inside it for the WooCommerce sorting dropdown.
 
 The panel itself is the `[sffilters]` shortcode, as everywhere else.
+
+In Bricks, the class goes into the CSS classes of the block, the shortcodes into Shortcode elements. The result count and the sorting can stay the Bricks elements for them, and the page links are the Bricks Pagination element of the main query. After a swap the plugin asks Bricks to load its lazy images.
 
 When the layout turns into one column at another width than 768px, set the width at which the panel becomes a drawer:
 

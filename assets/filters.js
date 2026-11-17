@@ -12,8 +12,8 @@
 	// The results are the WooCommerce loop the plugin wraps, or a container the theme marks with the same class.
 	var RESULTS = config.results || '.sffilters-results';
 	var PRODUCTS = config.products || 'ul.products, .bde-loop';
-	var PAGINATION = config.pagination || '.woocommerce-pagination a, .bde-posts-pagination a';
-	var NEXT = config.next || '.woocommerce-pagination a.next, .bde-posts-pagination > .bde-posts-prev-next-link:last-child a';
+	var PAGINATION = config.pagination || '.woocommerce-pagination a, .bde-posts-pagination a, .bricks-pagination a';
+	var NEXT = config.next || '.woocommerce-pagination a.next, .bde-posts-pagination > .bde-posts-prev-next-link:last-child a, .bricks-pagination a.next';
 	var ORDERING = config.ordering || '.woocommerce-ordering';
 	var MODE = config.mode || 'pages';
 	var PANEL = '[data-sffilters-panel]';
@@ -303,10 +303,44 @@
 		observer.observe( button );
 	}
 
+	// Lets the page builder treat what was just added like the rest of the page: Bricks loads its lazy images.
+	function settle() {
+		if ( 'function' === typeof window.bricksLazyLoad ) {
+			window.bricksLazyLoad();
+		}
+	}
+
+	// Finds the element that holds the products. A Bricks query loop has no class of its own:
+	// its items sit beside the marker that starts the loop. The server prints the marker as an
+	// attribute of the first item, and once the Bricks script has run it is a comment.
+	function productList( root ) {
+		var list = root ? root.querySelector( PRODUCTS ) : null;
+
+		if ( list || ! root ) {
+			return list;
+		}
+
+		var start = root.querySelector( '[data-brx-loop-start]' );
+
+		if ( start ) {
+			return start.parentNode;
+		}
+
+		var comments = ( root.ownerDocument || document ).createTreeWalker( root, NodeFilter.SHOW_COMMENT );
+
+		while ( comments.nextNode() ) {
+			if ( 0 === comments.currentNode.data.indexOf( 'brx-loop-start-' ) ) {
+				return comments.currentNode.parentNode;
+			}
+		}
+
+		return null;
+	}
+
 	// Replaces the page links with a "Load more" button that points at the next page.
 	function more() {
 		var results = document.querySelector( RESULTS );
-		var list = results ? results.querySelector( PRODUCTS ) : null;
+		var list = productList( results );
 		var next = results ? results.querySelector( NEXT ) : null;
 
 		pages = 1;
@@ -320,7 +354,7 @@
 		}
 
 		results.querySelectorAll( PAGINATION ).forEach( function ( link ) {
-			( link.closest( 'nav, .bde-posts-pagination' ) || link.parentNode ).classList.add( 'sffilters-hidden' );
+			( link.closest( 'nav, .bde-posts-pagination, .bricks-pagination' ) || link.parentNode ).classList.add( 'sffilters-hidden' );
 		} );
 
 		var wrap = document.createElement( 'p' );
@@ -356,8 +390,8 @@
 			.then( function ( html ) {
 				var here = document.querySelector( RESULTS );
 				var there = new DOMParser().parseFromString( html, 'text/html' ).querySelector( RESULTS );
-				var list = here ? here.querySelector( PRODUCTS ) : null;
-				var fresh = there ? there.querySelector( PRODUCTS ) : null;
+				var list = productList( here );
+				var fresh = productList( there );
 				var next = there ? there.querySelector( NEXT ) : null;
 				var first = null;
 
@@ -371,7 +405,12 @@
 				}
 
 				Array.prototype.slice.call( fresh.children ).forEach( function ( item ) {
-					var added = list.appendChild( document.importNode( item, true ) );
+					// Bricks ends every loop with a hidden marker. The one of the first page stays the last.
+					if ( item.matches( '.brx-query-trail' ) ) {
+						return;
+					}
+
+					var added = list.insertBefore( document.importNode( item, true ), list.querySelector( ':scope > .brx-query-trail' ) );
 
 					first = first || added;
 				} );
@@ -380,8 +419,12 @@
 				window.history.replaceState( { sffilters: true, pages: pages }, '' );
 
 				// Keyboard users continue at the first new product.
-				if ( document.activeElement === button && first && first.querySelector( 'a[href]' ) ) {
-					first.querySelector( 'a[href]' ).focus( { preventScroll: true } );
+				if ( document.activeElement === button && first ) {
+					var link = first.matches( 'a[href]' ) ? first : first.querySelector( 'a[href]' );
+
+					if ( link ) {
+						link.focus( { preventScroll: true } );
+					}
 				}
 
 				if ( next ) {
@@ -393,6 +436,7 @@
 					button.parentNode.remove();
 				}
 
+				settle();
 				document.dispatchEvent( new CustomEvent( 'sffilters:updated', { detail: { url: url, appended: true } } ) );
 
 				return !! next;
@@ -519,6 +563,7 @@
 					} );
 				}
 
+				settle();
 				document.dispatchEvent( new CustomEvent( 'sffilters:updated', { detail: { url: address } } ) );
 			} )
 			.catch( function ( error ) {

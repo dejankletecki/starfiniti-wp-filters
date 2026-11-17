@@ -91,7 +91,7 @@ final class Panel {
 		/**
 		 * Filters the selectors the script uses to find the product list and its pagination links,
 		 * and the media query (`mobile`) below which the panel opens as a drawer.
-		 * The defaults cover the WooCommerce loop and the Breakdance post loop.
+		 * The defaults cover the WooCommerce loop, the Breakdance post loop and a Bricks query loop.
 		 *
 		 * @param array $config Script settings.
 		 */
@@ -100,8 +100,8 @@ final class Panel {
 			array(
 				'results'    => '.sffilters-results',
 				'products'   => 'ul.products, .bde-loop',
-				'pagination' => '.woocommerce-pagination a, .bde-posts-pagination a',
-				'next'       => '.woocommerce-pagination a.next, .bde-posts-pagination > .bde-posts-prev-next-link:last-child a',
+				'pagination' => '.woocommerce-pagination a, .bde-posts-pagination a, .bricks-pagination a',
+				'next'       => '.woocommerce-pagination a.next, .bde-posts-pagination > .bde-posts-prev-next-link:last-child a, .bricks-pagination a.next',
 				'ordering'   => '.woocommerce-ordering',
 				'mobile'     => '(max-width: 768px)',
 				'mode'       => Settings::pagination(),

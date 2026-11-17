@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Attaches the filters to the main product query that WooCommerce and the theme draw.
+ * Attaches the filters to the main product query that WooCommerce, the theme or a page builder loop draws.
  */
 final class MainQuery {
 
@@ -31,6 +31,8 @@ final class MainQuery {
 		add_action( 'woocommerce_no_products_found', array( $this, 'close_results' ), 1000 );
 
 		add_filter( 'wp_robots', array( $this, 'robots' ) );
+		// Rank Math prints the robots tag itself and leaves `wp_robots` out.
+		add_filter( 'rank_math/frontend/robots', array( $this, 'rank_math_robots' ) );
 	}
 
 	/**
@@ -94,6 +96,20 @@ final class MainQuery {
 		if ( is_array( $robots ) && did_action( 'wp' ) && Plugin::instance()->state()->is_active() ) {
 			$robots['noindex'] = true;
 			$robots['follow']  = true;
+		}
+
+		return $robots;
+	}
+
+	/**
+	 * Keeps filtered pages out of search engines where Rank Math writes the robots tag.
+	 *
+	 * @param array $robots Robots directives of Rank Math, for example `array( 'index' => 'index' )`.
+	 */
+	public function rank_math_robots( $robots ) {
+		if ( is_array( $robots ) && did_action( 'wp' ) && Plugin::instance()->state()->is_active() ) {
+			$robots['index']  = 'noindex';
+			$robots['follow'] = 'follow';
 		}
 
 		return $robots;

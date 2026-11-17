@@ -113,6 +113,7 @@ async function shopChecks( expected ) {
 	check( 'shop: the products are wrapped for swapping', shop.html.includes( 'data-sffilters-results' ) );
 	check( 'shop: the panel is on the page', /name="sf_cat\[\]"[^>]*value="headphones"|value="headphones"[^>]*name="sf_cat\[\]"/.test( shop.html ) );
 	check( 'shop: the unfiltered page is not marked noindex', ! /noindex/.test( robots( shop.html ) ), robots( shop.html ) );
+	check( 'shop: the script knows the page links of the WooCommerce loop, the Breakdance post loop and a Bricks query loop', [ '.woocommerce-pagination a', '.bde-posts-pagination a', '.bricks-pagination a' ].every( ( selector ) => shop.html.includes( selector ) ) );
 	check( 'shop: small screens are marked before the page is drawn', /matchMedia\("\(max-width: 768px\)"\)[^<]*sffilters-mobile/.test( shop.html ) );
 
 	const filtered = await page( '/shop/?sf_cat=headphones' );
@@ -199,6 +200,13 @@ try {
 
 	if ( fromPhp.level ) {
 		await levelChecks( fromPhp.level );
+	}
+
+	if ( fromPhp.loop ) {
+		const seo = ( html ) => html.match( /<meta name="sffilters-test-robots" content="([^"]*)"/ )?.[ 1 ] ?? '';
+
+		check( 'robots: Rank Math is told to keep a filtered page out of search engines', 'noindex,follow' === seo( ( await page( '/shop/?sf_cat=headphones&sffilters_test_robots=1' ) ).html ) );
+		check( 'robots: Rank Math is left alone on an unfiltered page', 'index,follow' === seo( ( await page( '/shop/?sffilters_test_robots=1' ) ).html ) );
 	}
 } catch ( error ) {
 	check( 'the test run itself', false, error.stack || error.message );

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.4.0
+
+- Added support for Bricks: a query loop set as the main query is filtered, its page links and "Load more" work without a page reload, and lazy images load after a swap. Checked with Bricks 2.4 and B2BKing 5.6.
+- Filtered pages are now `noindex` also where Rank Math writes the robots tag.
+
 ## 1.3.0
 
 - Added a third display for taxonomy filters, "Links, one level at a time" (`level`): the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up. The whole tree stays available as "Links to their own pages".
