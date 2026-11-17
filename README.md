@@ -4,11 +4,12 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.1.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.2.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
 - Filters by category (as a tree), brand, tag, attribute, price range, stock status and on sale
+- Filters by product properties the store works out with its own code, as checkboxes or as a number range with a unit
 - Counts next to every choice, recalculated for the current selection
 - Products, result count, pagination, sorting and panel swap without a page reload, with working back and forward buttons
 - Selected filters above the products, each with a remove button, and "Clear all"
@@ -68,6 +69,37 @@ add_filter(
 
 The same filter holds the selectors of the product list and its page links, for a builder other than Breakdance.
 
+### Product properties
+
+Some of what a shop wants to filter by is not a taxonomy. A supplier may write "Material: forged steel with boron" into a product-level attribute, where the shop wants the choice "Forged steel". A store registers such a property with a function that works the value out for one product:
+
+```php
+add_filter(
+	'sffilters_properties',
+	static function ( array $properties ): array {
+		$properties['material'] = array(
+			'label'    => 'Material',
+			'callback' => 'my_store_material', // Gets the product ID. Returns a value, a list of values or null.
+		);
+		$properties['length']   = array(
+			'label'    => 'Length',
+			'type'     => 'number',            // The callback returns a number or null. Shown as a range.
+			'unit'     => 'cm',
+			'share'    => 0.6,                 // Optional, see below.
+			'callback' => 'my_store_length',
+		);
+
+		return $properties;
+	}
+);
+```
+
+A property name is a short key of lowercase letters, digits and underscores. Once registered, the property is a filter source like any other: add it under **WooCommerce > Filters** or with `wp sffilters add material`.
+
+The plugin works the values out when a product is saved and keeps them with the product, text values as terms of a taxonomy without screens of its own and numbers as product meta. They are filtered and counted like every other filter, and there is no index to keep in sync. Run `wp sffilters rebuild` once after registering a property or changing its rules. It goes through every product.
+
+With `share`, a property filter shows only where enough of the listed products have a value. With `0.6`, a length filter stays out of the way on the shop page and appears in a category where at least 60 % of the products have a length. A filter that is in use always shows.
+
 ### WP-CLI
 
 ```bash
@@ -79,6 +111,7 @@ wp sffilters label cat "Product type"
 wp sffilters display cat links
 wp sffilters remove sale
 wp sffilters pagination more
+wp sffilters rebuild
 wp sffilters reset --yes
 ```
 

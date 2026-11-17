@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.2.0
+
+- Added filters by product properties a store works out with its own code. A store registers a property with the `sffilters_properties` filter and a function. Text values show as checkboxes with counts, numbers as a range with a unit. The values are worked out when a product is saved and by `wp sffilters rebuild`.
+- A property filter can be limited with `share` to lists where enough of the products have a value, so it shows in the categories it belongs to.
+- Uninstalling the plugin also removes the property values it stored.
+
 ## 1.1.0
 
 - Added support for product archives a page builder draws itself from the main query, such as the Breakdance post loop. The container with the class `sffilters-results` is swapped without a page reload, `[sffilters_bar]` shows the selected filters and the "Filters" button, `[sffilters_ordering]` shows the WooCommerce sorting dropdown.
