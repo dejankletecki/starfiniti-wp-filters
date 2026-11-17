@@ -360,38 +360,38 @@
 	overflow: hidden;
 }
 
-@media (max-width: 768px) {
-	.sffilters-js .sffilters-bar {
-		display: flex;
-	}
+/* The script sets this class below the width where the panel becomes a drawer (768px unless the store changes it). */
 
-	.sffilters-js .sffilters-bar .sffilters-toggle {
-		align-items: center;
-		display: inline-flex;
-		gap: 0.4em;
-	}
-
-	.sffilters-js .sffilters-panel {
-		display: none;
-	}
-
-	.sffilters-js .sffilters-drawer .sffilters-panel {
-		display: grid;
-		margin: 0;
-	}
+.sffilters-mobile .sffilters-bar {
+	display: flex;
 }
 
-[data-sffilters-results] {
+.sffilters-mobile .sffilters-bar .sffilters-toggle {
+	align-items: center;
+	display: inline-flex;
+	gap: 0.4em;
+}
+
+.sffilters-mobile .sffilters-panel {
+	display: none;
+}
+
+.sffilters-mobile .sffilters-drawer .sffilters-panel {
+	display: grid;
+	margin: 0;
+}
+
+.sffilters-results {
 	transition: opacity 0.15s;
 }
 
-.sffilters-loading [data-sffilters-results] {
+.sffilters-loading .sffilters-results {
 	opacity: 0.5;
 	pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	[data-sffilters-results] {
+	.sffilters-results {
 		transition: none;
 	}
 }

@@ -70,11 +70,9 @@ final class MainQuery {
 
 		$this->results_open = true;
 
-		// Page one of this list without its query string. The script sorts from here.
-		$base = (string) strtok( get_pagenum_link( 1, false ), '?' );
-
+		// A theme that draws its products without these hooks marks its own container with the same class.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The bar is escaped in Panel::bar().
-		echo '<div class="sffilters-results" data-sffilters-results data-sffilters-base="' . esc_url( $base ) . '">' . Plugin::instance()->panel()->bar();
+		echo '<div class="sffilters-results" data-sffilters-results data-sffilters-base="' . esc_url( Plugin::instance()->panel()->first_page() ) . '">' . Plugin::instance()->panel()->bar();
 	}
 
 	public function close_results(): void {

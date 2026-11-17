@@ -257,6 +257,53 @@ foreach ( array( 'price', 'price-desc', 'popularity', 'rating', 'date' ) as $ord
 	);
 }
 
+// --- A product list drawn without the WooCommerce loop hooks, the way a page builder loop draws it.
+
+$check( 'layout: the bar and the sorting print nothing where there is no product list', '' === do_shortcode( '[sffilters_bar][sffilters_ordering]' ) );
+
+$loop = null;
+$tags = get_terms(
+	array(
+		'taxonomy'   => 'product_tag',
+		'hide_empty' => true,
+	)
+);
+
+// Only the demo store gets the test layout. tests/run.mjs asks for these pages.
+if ( 24 === count( $products ) && is_array( $tags ) && array() !== $tags ) {
+	$tag    = $tags[0];
+	$tagged = static fn( $p ) => in_array( $tag->slug, $slugs( $p, 'product_tag' ), true );
+	$brand  = '';
+	$fewest = PHP_INT_MAX;
+
+	foreach ( array( 'anker', 'xiaomi', 'dyson' ) as $candidate ) {
+		$with = count( $expect( static fn( $p ) => $tagged( $p ) && in_array( $candidate, $slugs( $p, 'product_brand' ), true ) ) );
+
+		if ( $with > 0 && $with < $fewest ) {
+			$brand  = $candidate;
+			$fewest = $with;
+		}
+	}
+
+	$check( 'layout: the tag of the test layout has products of a brand', '' !== $brand, $tag->slug );
+
+	wp_mkdir_p( WPMU_PLUGIN_DIR );
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- A helper of a test run.
+	file_put_contents(
+		WPMU_PLUGIN_DIR . '/sffilters-test-loop.php',
+		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Draws product tag pages without the WooCommerce loop hooks.\n"
+		. "add_filter(\n\t'template_include',\n\tstatic function ( \$template ) {\n"
+		. "\t\treturn defined( 'SFFILTERS_PLUGIN_DIR' ) && is_tax( 'product_tag' ) ? SFFILTERS_PLUGIN_DIR . 'tests/custom-loop.php' : \$template;\n"
+		. "\t},\n\tPHP_INT_MAX\n);\n"
+	);
+
+	$loop = array(
+		'path'     => (string) wp_parse_url( (string) get_term_link( $tag ), PHP_URL_PATH ),
+		'query'    => 'sf_brand=' . $brand,
+		'filtered' => $fewest,
+	);
+}
+
 // --- Counts in the panel.
 
 $facet = static function ( string $slug, array $request ) use ( $filters, $state, $base ): array {
@@ -567,6 +614,7 @@ if ( wp_mkdir_p( dirname( $report ) ) ) {
 			array(
 				'checks' => $sffilters_results,
 				'http'   => $http,
+				'loop'   => $loop,
 			)
 		)
 	);

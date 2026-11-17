@@ -9,10 +9,11 @@
 
 	var config = window.sffiltersConfig || {};
 	var strings = config.strings || {};
-	var RESULTS = config.results || '[data-sffilters-results]';
-	var PRODUCTS = config.products || 'ul.products';
-	var PAGINATION = config.pagination || '.woocommerce-pagination a';
-	var NEXT = config.next || '.woocommerce-pagination a.next';
+	// The results are the WooCommerce loop the plugin wraps, or a container the theme marks with the same class.
+	var RESULTS = config.results || '.sffilters-results';
+	var PRODUCTS = config.products || 'ul.products, .bde-loop';
+	var PAGINATION = config.pagination || '.woocommerce-pagination a, .bde-posts-pagination a';
+	var NEXT = config.next || '.woocommerce-pagination a.next, .bde-posts-pagination > .bde-posts-prev-next-link:last-child a';
 	var ORDERING = config.ordering || '.woocommerce-ordering';
 	var MODE = config.mode || 'pages';
 	var PANEL = '[data-sffilters-panel]';
@@ -78,7 +79,10 @@
 	// The address the sorting dropdown leads to: page one of this list in the new order.
 	function sortUrl( form ) {
 		var params = new URLSearchParams( new FormData( form ) );
-		var base = form.closest( RESULTS ).getAttribute( 'data-sffilters-base' );
+		var results = form.closest( RESULTS );
+		// The wrapper the plugin prints carries the address itself, a container of the theme has it on the bar.
+		var holder = results.hasAttribute( 'data-sffilters-base' ) ? results : results.querySelector( '[data-sffilters-base]' );
+		var base = holder ? holder.getAttribute( 'data-sffilters-base' ) : '';
 
 		if ( base ) {
 			params.delete( 'paged' );
@@ -316,7 +320,7 @@
 		}
 
 		results.querySelectorAll( PAGINATION ).forEach( function ( link ) {
-			( link.closest( 'nav' ) || link.parentNode ).classList.add( 'sffilters-hidden' );
+			( link.closest( 'nav, .bde-posts-pagination' ) || link.parentNode ).classList.add( 'sffilters-hidden' );
 		} );
 
 		var wrap = document.createElement( 'p' );
@@ -588,13 +592,21 @@
 		}
 	} );
 
+	// The stylesheet hides the panel and shows the button while this class is set.
+	function syncMobile() {
+		document.documentElement.classList.toggle( 'sffilters-mobile', mobile.matches && !! window.HTMLDialogElement );
+	}
+
 	// The drawer belongs to small screens only.
 	mobile.addEventListener( 'change', function () {
+		syncMobile();
+
 		if ( ! mobile.matches ) {
 			closeDrawer();
 		}
 	} );
 
+	syncMobile();
 	enhance();
 	restore();
 }() );

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.1.0
+
+- Added support for product archives a page builder draws itself from the main query, such as the Breakdance post loop. The container with the class `sffilters-results` is swapped without a page reload, `[sffilters_bar]` shows the selected filters and the "Filters" button, `[sffilters_ordering]` shows the WooCommerce sorting dropdown.
+- The width below which the panel opens as a drawer can be changed with the `mobile` media query in the `sffilters_script_config` filter. It stays 768px by default.
+
 ## 1.0.0
 
 - First stable release. The code is the same as in 0.6.0.

@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.0.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.1.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -12,17 +12,18 @@ Working now:
 - Counts next to every choice, recalculated for the current selection
 - Products, result count, pagination, sorting and panel swap without a page reload, with working back and forward buttons
 - Selected filters above the products, each with a remove button, and "Clear all"
-- Mobile panel: a "Filters" button opens the panel as a drawer on screens up to 768px
+- Mobile panel: a "Filters" button opens the panel as a drawer on screens up to 768px, or up to the width the store sets
 - Price slider with two handles
 - Page links, "Load more" or infinite scroll
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages
 - Works with the Breakdance "Shop Page" element
+- Works with product archives a page builder draws itself from the main query, such as the Breakdance post loop
 - A settings page under WooCommerce > Filters, the same settings through WP-CLI and the WordPress Abilities API
 - English and Slovenian
 - Filtered pages are `noindex`
 - Updates from GitHub releases on the normal WordPress update screens
 
-Not yet: radio buttons and select as filter controls, a canonical link on filtered pages, Bricks query loops, Breakdance product lists outside the shop template and the `[products]` shortcode.
+Not yet: radio buttons and select as filter controls, a canonical link on filtered pages, Bricks query loops, product lists that run a query of their own and the `[products]` shortcode.
 
 ## Install and updates
 
@@ -41,6 +42,31 @@ Put the `[sffilters]` shortcode where the panel should appear, for example in a 
 Choose the filters under **WooCommerce > Filters**: add a filter for any category, brand, tag or attribute, or for price, availability and sale, set its title and order, and pick how the product list continues (page links, "Load more" or infinite scroll). Until you save, the panel shows categories, brands, price, availability and on sale.
 
 A taxonomy filter shows its terms in one of two ways. **Checkboxes** filter the current list and keep the choice in the URL. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on.
+
+### Shops drawn by a page builder loop
+
+A theme or page builder may draw the products of the shop and category pages itself, without the WooCommerce loop, for example with the Breakdance post loop on the product archive template. The products are filtered there as well. Three things tell the plugin where everything is:
+
+1. Give the container that holds the result count, the sorting, the products and the page links the CSS class `sffilters-results`. The plugin swaps what is inside it.
+2. Put `[sffilters_bar]` inside that container, where the selected filters should show. On small screens it also holds the "Filters" button.
+3. Put `[sffilters_ordering]` inside it for the WooCommerce sorting dropdown.
+
+The panel itself is the `[sffilters]` shortcode, as everywhere else.
+
+When the layout turns into one column at another width than 768px, set the width at which the panel becomes a drawer:
+
+```php
+add_filter(
+	'sffilters_script_config',
+	static function ( array $config ): array {
+		$config['mobile'] = '(max-width: 1023px)';
+
+		return $config;
+	}
+);
+```
+
+The same filter holds the selectors of the product list and its page links, for a builder other than Breakdance.
 
 ### WP-CLI
 

@@ -29,12 +29,12 @@ The previous attempt in this repository grew into an enterprise search platform 
 - `src/Filter/` holds one class per filter source: taxonomy, price, stock, sale. A filter parses its URL value, returns query conditions and lists its choices with counts. A taxonomy filter with `display` set to `links` reads nothing from the URL: its terms are links to their own archive pages.
 - `src/State.php` reads the filter values from the URL.
 - `src/Query.php` turns state into `WP_Query` vars. Price, stock and sale go through the WooCommerce product lookup table.
-- `src/Integration/` holds one class per product list the plugin can filter. `MainQuery` covers the WooCommerce shop and archive pages. The Breakdance "Shop Page" element runs the same WooCommerce loop hooks, so `MainQuery` covers it too and it needs no class of its own.
+- `src/Integration/` holds one class per product list the plugin can filter. `MainQuery` covers the WooCommerce shop and archive pages. The Breakdance "Shop Page" element runs the same WooCommerce loop hooks, so `MainQuery` covers it too and it needs no class of its own. A builder loop that draws the main query without those hooks, such as the Breakdance post loop, is filtered by `MainQuery` as well: the store marks its results container with the class `sffilters-results` and places `[sffilters_bar]` and `[sffilters_ordering]` in it.
 - `src/Panel.php` renders the `[sffilters]` form and the bar above the products (mobile button, selected filters). `assets/filters.js` swaps the results and the panel, and adds the drawer, the price slider and "Load more".
 - `languages/` holds the Slovenian `.po` and the compiled `.mo`. Strings the script shows come from PHP through `sffiltersConfig.strings`.
 - `src/Settings.php` reads and writes `sffilters_settings` and builds the filters. Every way of changing settings goes through `Settings::save()`: `src/Admin/SettingsPage.php` (WooCommerce > Filters, with `assets/admin.js`), `src/Cli.php` (`wp sffilters`) and `src/Abilities.php` (Abilities API, WordPress 6.9+).
 - `src/Updater.php` offers new GitHub releases to WordPress and checks each package against its published SHA-256 checksum before it is installed.
-- `tests/checks.php` holds the checks. It runs inside a real WordPress and works out the expected products from the catalog itself. `tests/run.mjs` starts the Playground store for it and then asks the shop pages.
+- `tests/checks.php` holds the checks. It runs inside a real WordPress and works out the expected products from the catalog itself. `tests/run.mjs` starts the Playground store for it and then asks the shop pages. `tests/custom-loop.php` is the layout of a builder loop: the checks switch it on for the product tag pages of the demo store.
 
 ## Conventions
 

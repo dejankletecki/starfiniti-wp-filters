@@ -113,6 +113,7 @@ async function shopChecks( expected ) {
 	check( 'shop: the products are wrapped for swapping', shop.html.includes( 'data-sffilters-results' ) );
 	check( 'shop: the panel is on the page', /name="sf_cat\[\]"[^>]*value="headphones"|value="headphones"[^>]*name="sf_cat\[\]"/.test( shop.html ) );
 	check( 'shop: the unfiltered page is not marked noindex', ! /noindex/.test( robots( shop.html ) ), robots( shop.html ) );
+	check( 'shop: small screens are marked before the page is drawn', /matchMedia\("\(max-width: 768px\)"\)[^<]*sffilters-mobile/.test( shop.html ) );
 
 	const filtered = await page( '/shop/?sf_cat=headphones' );
 	const shown = Number( shop.html.match( /value="headphones"[\s\S]*?sffilters-option__count[^>]*>\s*\(?(\d+)/ )?.[ 1 ] ?? NaN );
@@ -135,6 +136,21 @@ async function shopChecks( expected ) {
 	check( 'shop: the second page keeps the filter', second.status === 200 && total( second.html ) === inStock, `answered ${ second.status } with ${ total( second.html ) } of ${ inStock }` );
 }
 
+// A product list drawn from the main query without the WooCommerce loop hooks, as a page builder loop does.
+async function loopChecks( loop ) {
+	const plain = await page( loop.path );
+	const filtered = await page( `${ loop.path }?${ loop.query }` );
+	const base = plain.html.match( /class="sffilters-bar[^"]*" data-sffilters-base="([^"]*)"/ )?.[ 1 ] ?? '';
+
+	check( 'layout: the page of the test layout loads', plain.status === 200 && plain.html.includes( '<ul class="bde-loop">' ), plain.status );
+	check( 'layout: the plugin adds no wrapper of its own there', ! plain.html.includes( 'data-sffilters-results' ) );
+	check( 'layout: the bar knows page one of the list', base.endsWith( loop.path ), base );
+	check( 'layout: the sorting dropdown is drawn', /<form class="woocommerce-ordering"/.test( plain.html ) );
+	check( 'layout: the panel is drawn', /name="sf_brand\[\]"/.test( plain.html ) );
+	check( 'layout: a filter narrows the list', filtered.status === 200 && total( filtered.html ) === loop.filtered, `answered ${ filtered.status } with ${ total( filtered.html ) } products, expected ${ loop.filtered }` );
+	check( 'layout: the chosen value can be removed above the products', /sffilters-chip/.test( filtered.html ) && ! /sffilters-chip/.test( plain.html ) );
+}
+
 try {
 	if ( ! external ) {
 		await startPlayground();
@@ -148,6 +164,10 @@ try {
 
 	results.push( ...fromPhp.checks );
 	await shopChecks( fromPhp.http );
+
+	if ( fromPhp.loop ) {
+		await loopChecks( fromPhp.loop );
+	}
 } catch ( error ) {
 	check( 'the test run itself', false, error.stack || error.message );
 } finally {
