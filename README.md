@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.2.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.3.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -16,7 +16,8 @@ Working now:
 - Mobile panel: a "Filters" button opens the panel as a drawer on screens up to 768px, or up to the width the store sets
 - Price slider with two handles
 - Page links, "Load more" or infinite scroll
-- Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages
+- Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
+- Checkboxes drawn the same in every browser, in the accent colour of the store
 - Works with the Breakdance "Shop Page" element
 - Works with product archives a page builder draws itself from the main query, such as the Breakdance post loop
 - A settings page under WooCommerce > Filters, the same settings through WP-CLI and the WordPress Abilities API
@@ -42,7 +43,23 @@ Put the `[sffilters]` shortcode where the panel should appear, for example in a 
 
 Choose the filters under **WooCommerce > Filters**: add a filter for any category, brand, tag or attribute, or for price, availability and sale, set its title and order, and pick how the product list continues (page links, "Load more" or infinite scroll). Until you save, the panel shows categories, brands, price, availability and on sale.
 
-A taxonomy filter shows its terms in one of two ways. **Checkboxes** filter the current list and keep the choice in the URL. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on.
+A taxonomy filter shows its terms in one of three ways. **Checkboxes** filter the current list and keep the choice in the URL. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on. **Links, one level at a time** does the same for a large category tree: the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up.
+
+### Look
+
+The panel takes its fonts and colours from the theme. Four custom properties set the rest, on `:root` or on `.sffilters-panel`:
+
+```css
+.sffilters-panel,
+.sffilters-drawer {
+	--sffilters-accent: #7c8a3a;      /* Ticked checkboxes, the slider, the main button. */
+	--sffilters-accent-text: #fff;    /* The tick and the text of the main button. */
+	--sffilters-border: #767676;      /* The checkbox outline. */
+	--sffilters-radius: 3px;          /* Buttons. */
+}
+```
+
+On a Breakdance site the accent falls back to the brand colour.
 
 ### Shops drawn by a page builder loop
 
@@ -109,6 +126,7 @@ wp sffilters add pa_color --label="Colour" --position=2
 wp sffilters move price 1
 wp sffilters label cat "Product type"
 wp sffilters display cat links
+wp sffilters display cat level
 wp sffilters remove sale
 wp sffilters pagination more
 wp sffilters rebuild

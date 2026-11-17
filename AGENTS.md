@@ -26,7 +26,7 @@ The previous attempt in this repository grew into an enterprise search platform 
 
 ## Where things are
 
-- `src/Filter/` holds one class per filter source: taxonomy, price, number, stock, sale. A filter parses its URL value, returns query conditions and lists its choices with counts. A taxonomy filter with `display` set to `links` reads nothing from the URL: its terms are links to their own archive pages.
+- `src/Filter/` holds one class per filter source: taxonomy, price, number, stock, sale. A filter parses its URL value, returns query conditions and lists its choices with counts. A taxonomy filter with `display` set to `links` or `level` reads nothing from the URL: its terms are links to their own archive pages, the whole tree or one level at a time.
 - `src/Properties.php` holds the product properties a store registers with the `sffilters_properties` filter. A callback works out the value for one product. The value is stored when the product is saved and by `wp sffilters rebuild`: text values as terms of the taxonomy `sffilters_<property>`, which `TaxonomyFilter` filters and counts, numbers as product meta `_sffilters_<property>`, which `NumberFilter` filters as a range. No index, no custom table.
 - `src/State.php` reads the filter values from the URL.
 - `src/Query.php` turns state into `WP_Query` vars. Price, stock and sale go through the WooCommerce product lookup table.

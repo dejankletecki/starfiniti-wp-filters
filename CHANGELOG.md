@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.3.0
+
+- Added a third display for taxonomy filters, "Links, one level at a time" (`level`): the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up. The whole tree stays available as "Links to their own pages".
+- Checkboxes are now drawn by the plugin, so they look the same in every browser. A store sets their colour with `--sffilters-accent`, the outline with `--sffilters-border`. The slider takes the same accent.
+
 ## 1.2.0
 
 - Added filters by product properties a store works out with its own code. A store registers a property with the `sffilters_properties` filter and a function. Text values show as checkboxes with counts, numbers as a range with a unit. The values are worked out when a product is saved and by `wp sffilters rebuild`.
