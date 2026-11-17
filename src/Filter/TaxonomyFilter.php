@@ -18,7 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Covers categories, tags, brands and product attributes.
  *
  * Shown as checkboxes, the terms filter the current list. Shown as links, each term leads to its own page,
- * for example the category page, and nothing is read from the URL.
+ * for example the category page, and nothing is read from the URL: `links` lists the whole tree, `level`
+ * lists one level at a time, the way a shopper walks down the categories.
  */
 final class TaxonomyFilter extends Filter {
 
@@ -26,21 +27,21 @@ final class TaxonomyFilter extends Filter {
 	 * @param string $slug     Filter slug.
 	 * @param string $label    Title in the panel.
 	 * @param string $taxonomy Taxonomy name.
-	 * @param bool   $links    Show the terms as links to their own pages.
+	 * @param string $display  Empty for checkboxes, `links` or `level` for links to the terms' own pages.
 	 * @param float  $share    Hide the filter when a smaller share of the listed products has a term.
 	 */
 	public function __construct(
 		string $slug,
 		string $label,
 		private string $taxonomy,
-		private bool $links = false,
+		private string $display = '',
 		private float $share = 0.0
 	) {
 		parent::__construct( $slug, $label );
 	}
 
 	public function parse( $raw ): array {
-		if ( $this->links ) {
+		if ( '' !== $this->display ) {
 			return array();
 		}
 
@@ -61,7 +62,7 @@ final class TaxonomyFilter extends Filter {
 	}
 
 	public function facet( string $ids_sql, array $values ): array {
-		if ( $this->links ) {
+		if ( '' !== $this->display ) {
 			return $this->links();
 		}
 
@@ -137,6 +138,18 @@ final class TaxonomyFilter extends Filter {
 			);
 		}
 
+		// On a term page, the way back to the whole shop.
+		$back = 0 !== $current
+			? array(
+				'label' => __( 'All products', 'starfiniti-filters' ),
+				'url'   => (string) wc_get_page_permalink( 'shop' ),
+			)
+			: null;
+
+		if ( 'level' === $this->display ) {
+			return $this->level( $nodes, $current, $back );
+		}
+
 		if ( array() === $nodes ) {
 			return array();
 		}
@@ -144,8 +157,58 @@ final class TaxonomyFilter extends Filter {
 		return array(
 			'kind'    => 'links',
 			'options' => self::tree( $nodes, 0 ),
-			// On a term page, the way back to the whole shop.
-			'all'     => 0 !== $current ? (string) wc_get_page_permalink( 'shop' ) : '',
+			'back'    => $back,
+		);
+	}
+
+	/**
+	 * Keeps one level of the links: the children of the term being viewed, or the terms beside it when it has
+	 * none. A page that is no term page gets the top level. The way back leads one level up.
+	 *
+	 * @param array<int, array> $nodes   Links keyed by term ID.
+	 * @param int               $current Term being viewed, or 0.
+	 * @param array|null        $back    The way back to the whole shop.
+	 */
+	private function level( array $nodes, int $current, ?array $back ): array {
+		$term   = 0 !== $current ? get_term( $current, $this->taxonomy ) : null;
+		$parent = $term instanceof \WP_Term ? (int) $term->parent : 0;
+		$level  = static fn( int $of ): array => array_filter( $nodes, static fn( array $node ): bool => $node['parent'] === $of );
+		$shown  = 0 !== $current ? $level( $current ) : array();
+
+		if ( array() === $shown ) {
+			$shown = $level( $parent );
+		}
+
+		if ( array() === $shown ) {
+			return array();
+		}
+
+		if ( 0 !== $parent ) {
+			$above = get_term( $parent, $this->taxonomy );
+			$url   = $above instanceof \WP_Term ? get_term_link( $above ) : null;
+
+			if ( is_string( $url ) ) {
+				$back = array(
+					/* translators: %s: name of the category one level up. */
+					'label' => sprintf( __( 'Back to %s', 'starfiniti-filters' ), $above->name ),
+					'url'   => $url,
+				);
+			}
+		}
+
+		$options = array();
+
+		foreach ( $shown as $node ) {
+			unset( $node['parent'] );
+
+			$node['children'] = array();
+			$options[]        = $node;
+		}
+
+		return array(
+			'kind'    => 'links',
+			'options' => $options,
+			'back'    => $back,
 		);
 	}
 

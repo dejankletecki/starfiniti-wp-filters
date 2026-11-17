@@ -251,19 +251,21 @@ final class SettingsPage {
 	 * @param string $name      Default title of the source.
 	 * @param bool   $attribute Whether the source is a product attribute.
 	 * @param bool   $taxonomy  Whether the source is a taxonomy. Only those can be shown as links.
-	 * @param string $display   `links` when the terms lead to their own pages.
+	 * @param string $display   `links` or `level` when the terms lead to their own pages.
 	 */
 	private function row( string $key, string $slug, string $label, string $name, bool $attribute, bool $taxonomy, string $display ): string {
 		$shown = '<input type="hidden" name="sffilters[display][]" value="">';
 
 		if ( $taxonomy ) {
 			$shown = sprintf(
-				'<select name="sffilters[display][]" aria-label="%1$s" data-sffilters-display><option value="">%2$s</option><option value="links"%3$s>%4$s</option></select>',
+				'<select name="sffilters[display][]" aria-label="%1$s" data-sffilters-display><option value="">%2$s</option><option value="links"%3$s>%4$s</option><option value="level"%5$s>%6$s</option></select>',
 				/* translators: %s: filter name, for example Categories. */
 				esc_attr( sprintf( __( 'Display of the %s filter', 'starfiniti-filters' ), $name ) ),
 				esc_html__( 'Checkboxes', 'starfiniti-filters' ),
 				selected( $display, 'links', false ),
-				esc_html__( 'Links to their own pages', 'starfiniti-filters' )
+				esc_html__( 'Links to their own pages', 'starfiniti-filters' ),
+				selected( $display, 'level', false ),
+				esc_html__( 'Links, one level at a time', 'starfiniti-filters' )
 			);
 		}
 

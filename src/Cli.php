@@ -119,12 +119,14 @@ final class Cli {
 	 * : Used in the URL as sf_<slug>. Defaults to a short form of the source.
 	 *
 	 * [--display=<display>]
-	 * : For taxonomies. With `links` each term leads to its own page, for example the category page.
+	 * : For taxonomies. With `links` each term leads to its own page, for example the category page. With `level` the
+	 * panel lists one level at a time: the subcategories of the page being viewed, or the categories beside it.
 	 * ---
 	 * default: checkboxes
 	 * options:
 	 *   - checkboxes
 	 *   - links
+	 *   - level
 	 * ---
 	 *
 	 * [--position=<position>]
@@ -234,11 +236,13 @@ final class Cli {
 	 * : Slug of the filter, see `wp sffilters list`.
 	 *
 	 * <display>
-	 * : With `links` each term leads to its own page, for example the category page.
+	 * : With `links` each term leads to its own page, for example the category page. With `level` the panel lists
+	 * one level at a time: the subcategories of the page being viewed, or the categories beside it.
 	 * ---
 	 * options:
 	 *   - checkboxes
 	 *   - links
+	 *   - level
 	 * ---
 	 *
 	 * @param array $args Positional arguments.

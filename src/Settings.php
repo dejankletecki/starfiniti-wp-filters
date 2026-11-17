@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * A stored filter definition is an array: `slug` (used in the URL as `sf_<slug>`), `source`
  * (`taxonomy`, `property`, `price`, `stock` or `sale`), `taxonomy` for taxonomy filters, `property` for
  * filters by a product property of the store (see Properties), an optional `label` and, for taxonomy
- * filters, `display` set to `links` when the terms lead to their own pages.
+ * filters, `display` set to `links` or `level` when the terms lead to their own pages.
  * When reading input, `source` may also name the taxonomy or the property directly, for example `pa_color`.
  */
 final class Settings {
@@ -35,6 +35,12 @@ final class Settings {
 	public const OPTION = 'sffilters_settings';
 
 	public const PAGINATION = array( 'pages', 'more', 'infinite' );
+
+	/**
+	 * How a taxonomy filter can show its terms besides checkboxes: `links` lists the whole tree as links to the
+	 * terms' own pages, `level` one level at a time.
+	 */
+	public const DISPLAYS = array( 'links', 'level' );
 
 	private const SOURCES = array( 'price', 'stock', 'sale' );
 
@@ -389,8 +395,8 @@ final class Settings {
 		if ( 'taxonomy' === $source ) {
 			$clean['taxonomy'] = $taxonomy;
 
-			if ( 'links' === self::text( $definition, 'display' ) ) {
-				$clean['display'] = 'links';
+			if ( in_array( self::text( $definition, 'display' ), self::DISPLAYS, true ) ) {
+				$clean['display'] = self::text( $definition, 'display' );
 			}
 		}
 
@@ -495,7 +501,7 @@ final class Settings {
 
 		switch ( $definition['source'] ) {
 			case 'taxonomy':
-				return new TaxonomyFilter( $slug, $label, $taxonomy, isset( $definition['display'] ) );
+				return new TaxonomyFilter( $slug, $label, $taxonomy, $definition['display'] ?? '' );
 
 			case 'property':
 				$key      = $definition['property'];
@@ -503,7 +509,7 @@ final class Settings {
 
 				return 'number' === $property['type']
 					? new NumberFilter( $slug, $label, Properties::meta_key( $key ), $property['unit'], $property['share'] )
-					: new TaxonomyFilter( $slug, $label, Properties::taxonomy( $key ), false, $property['share'] );
+					: new TaxonomyFilter( $slug, $label, Properties::taxonomy( $key ), '', $property['share'] );
 
 			case 'price':
 				return new PriceFilter( $slug, $label );

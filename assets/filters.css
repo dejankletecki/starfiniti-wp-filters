@@ -1,4 +1,10 @@
-/* Starfiniti Filters. Colours and fonts come from the theme. */
+/*
+ * Starfiniti Filters. Colours and fonts come from the theme.
+ *
+ * A store sets its own look with four custom properties, on `:root` or on `.sffilters-panel`:
+ * `--sffilters-accent` (ticked checkboxes, the slider, the main button), `--sffilters-accent-text`
+ * (the tick and the text of the main button), `--sffilters-border` (the checkbox outline) and `--sffilters-radius`.
+ */
 
 .sffilters-panel {
 	display: grid;
@@ -39,13 +45,78 @@
 	align-items: baseline;
 	cursor: pointer;
 	display: flex;
-	gap: 0.5rem;
-	padding: 0.2rem 0;
+	gap: 0.6rem;
+	padding: 0.25rem 0;
 }
 
 .sffilters-option__control input {
 	flex: none;
 	margin: 0;
+}
+
+/* Checkboxes are drawn here, so they look the same in every browser and take the accent colour of the store. */
+
+.sffilters-option__control input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	background: #fff;
+	border: 1.5px solid var(--sffilters-border, #8c8c8c);
+	border-radius: 0.25em;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: inline-grid;
+	font-size: inherit;
+	height: 1.15em;
+	place-content: center;
+	transform: translateY(0.18em);
+	transition: background-color 0.12s, border-color 0.12s;
+	width: 1.15em;
+}
+
+.sffilters-option__control input[type="checkbox"]::before {
+	background: var(--sffilters-accent-text, #fff);
+	clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+	content: "";
+	height: 0.65em;
+	transform: scale(0);
+	transition: transform 0.12s;
+	width: 0.65em;
+}
+
+.sffilters-option__control:hover input[type="checkbox"] {
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+}
+
+.sffilters-option__control input[type="checkbox"]:checked {
+	background: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+}
+
+.sffilters-option__control input[type="checkbox"]:checked::before {
+	transform: scale(1);
+}
+
+.sffilters-option__control input[type="checkbox"]:focus-visible {
+	outline: 2px solid var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	outline-offset: 2px;
+}
+
+.sffilters-option__control:has(input:checked) .sffilters-option__label {
+	font-weight: 600;
+}
+
+/* Where the system forces its own colours, the browser draws the checkbox. */
+
+@media (forced-colors: active) {
+	.sffilters-option__control input[type="checkbox"] {
+		-webkit-appearance: auto;
+		appearance: auto;
+		transform: none;
+	}
+
+	.sffilters-option__control input[type="checkbox"]::before {
+		display: none;
+	}
 }
 
 .sffilters-option__link {
@@ -97,6 +168,7 @@
 /* Price slider: two range inputs on one track. */
 
 .sffilters-slider {
+	color: var(--sffilters-accent, inherit);
 	height: 1.25rem;
 	margin: 0.25rem 0 0.75rem;
 	position: relative;
@@ -391,7 +463,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.sffilters-results {
+	.sffilters-results,
+	.sffilters-option__control input[type="checkbox"],
+	.sffilters-option__control input[type="checkbox"]::before {
 		transition: none;
 	}
 }

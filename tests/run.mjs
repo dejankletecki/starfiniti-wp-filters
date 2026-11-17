@@ -162,6 +162,19 @@ async function propertyChecks( properties ) {
 	check( 'properties: the number shows its unit', /sffilters-range__unit">cm</.test( category.html ) );
 }
 
+// Categories as links, one level at a time. The helper of the checks switches this on for `sffilters_test_level`.
+async function levelChecks( level ) {
+	const panel = ( html ) => html.match( /<form class="sffilters-panel"[\s\S]*?<\/form>/ )?.[ 0 ] ?? '';
+	const shop = panel( ( await page( '/shop/?sffilters_test_level=1' ) ).html );
+	const leaf = panel( ( await page( `${ level.leaf }?sffilters_test_level=1` ) ).html );
+	const link = ( path ) => new RegExp( `href="[^"]*${ path }"` );
+
+	check( 'level: the shop links to the top categories only', link( level.above ).test( shop ) && ! link( level.leaf ).test( shop ) && ! shop.includes( 'name="sf_cat[]"' ) );
+	check( 'level: a category without subcategories links to the one beside it', link( level.beside ).test( leaf ) );
+	check( 'level: the category being viewed is marked', /aria-current="page"/.test( leaf ) );
+	check( 'level: the way back leads one level up', new RegExp( `sffilters-filter__all"><a href="[^"]*${ level.above }"` ).test( leaf ) );
+}
+
 try {
 	if ( ! external ) {
 		await startPlayground();
@@ -182,6 +195,10 @@ try {
 
 	if ( fromPhp.properties ) {
 		await propertyChecks( fromPhp.properties );
+	}
+
+	if ( fromPhp.level ) {
+		await levelChecks( fromPhp.level );
 	}
 } catch ( error ) {
 	check( 'the test run itself', false, error.stack || error.message );

@@ -325,8 +325,8 @@ final class Panel {
 		} elseif ( 'links' === $kind ) {
 			$body = $this->links( $facet['options'] );
 
-			if ( '' !== $facet['all'] ) {
-				$body = sprintf( '<p class="sffilters-filter__all"><a href="%s">%s</a></p>', esc_url( $facet['all'] ), esc_html__( 'All products', 'starfiniti-filters' ) ) . $body;
+			if ( ! empty( $facet['back'] ) ) {
+				$body = sprintf( '<p class="sffilters-filter__all"><a href="%s">%s</a></p>', esc_url( $facet['back']['url'] ), esc_html( $facet['back']['label'] ) ) . $body;
 			}
 		} elseif ( 'range' === $kind ) {
 			$body = $this->range( $param, $facet );

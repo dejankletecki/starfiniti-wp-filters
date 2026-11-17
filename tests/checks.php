@@ -355,10 +355,14 @@ if ( $demo && is_array( $tags ) && array() !== $tags ) {
 	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- A helper of a test run.
 	file_put_contents(
 		WPMU_PLUGIN_DIR . '/sffilters-test-loop.php',
-		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Registers the test properties and draws product tag pages\n// without the WooCommerce loop hooks.\n"
+		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Registers the test properties, draws product tag pages\n// without the WooCommerce loop hooks and shows categories one level at a time when the address asks for it.\n"
 		. "add_action(\n\t'plugins_loaded',\n\tstatic function () {\n"
 		. "\t\tif ( defined( 'SFFILTERS_PLUGIN_DIR' ) ) {\n\t\t\trequire_once SFFILTERS_PLUGIN_DIR . 'tests/properties.php';\n\t\t}\n"
 		. "\t},\n\t5\n);\n"
+		. "add_filter(\n\t'sffilters_filter_definitions',\n\tstatic function ( \$definitions ) {\n"
+		. "\t\tforeach ( isset( \$_GET['sffilters_test_level'] ) ? array_keys( \$definitions ) : array() as \$index ) {\n"
+		. "\t\t\tif ( 'product_cat' === ( \$definitions[ \$index ]['taxonomy'] ?? '' ) ) {\n\t\t\t\t\$definitions[ \$index ]['display'] = 'level';\n\t\t\t}\n\t\t}\n\n"
+		. "\t\treturn \$definitions;\n\t}\n);\n"
 		. "add_filter(\n\t'template_include',\n\tstatic function ( \$template ) {\n"
 		. "\t\treturn defined( 'SFFILTERS_PLUGIN_DIR' ) && is_tax( 'product_tag' ) ? SFFILTERS_PLUGIN_DIR . 'tests/custom-loop.php' : \$template;\n"
 		. "\t},\n\tPHP_INT_MAX\n);\n"
@@ -441,6 +445,68 @@ foreach ( array( 'wearables', 'home' ) as $category ) {
 
 	// A choice that would find nothing is not shown at all.
 	$check( 'counts: products on sale in the category ' . $category, 0 === $expected ? array() === $sale : ( $sale['count'] ?? -1 ) === $expected, $sale );
+}
+
+// --- Categories as links, one level at a time.
+
+$level  = null;
+$walked = new \Starfiniti\Filters\Filter\TaxonomyFilter( 'cat', 'Categories', 'product_cat', 'level' );
+$term   = static fn( string $slug ) => get_term_by( 'slug', $slug, 'product_cat' );
+
+if ( $demo && $term( 'audio' ) && $term( 'headphones' ) && $term( 'speakers' ) && $term( 'home' ) ) {
+	$main_query = $GLOBALS['wp_query'];
+
+	\Starfiniti\Filters\Plugin::instance()->set_base_query_vars( $base );
+
+	// Asks for the links the way a page of this category would.
+	$on = static function ( string $slug ) use ( $walked ): array {
+		$GLOBALS['wp_query'] = '' === $slug
+			? new WP_Query()
+			: new WP_Query(
+				array(
+					'post_type'   => 'product',
+					'product_cat' => $slug,
+				)
+			);
+
+		return $walked->facet( '', array() );
+	};
+
+	$names   = static fn( array $facet ): array => array_column( $facet['options'] ?? array(), 'label' );
+	$current = static fn( array $facet ): array => array_column( array_filter( $facet['options'] ?? array(), static fn( $option ) => $option['current'] ), 'label' );
+	$top     = array();
+
+	foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'orderby' => 'name' ) ) as $found_term ) {
+		if ( array() !== $expect( static fn( $p ) => $in_category( $p, $found_term->slug ) ) ) {
+			$top[] = $found_term->name;
+		}
+	}
+
+	$shop = $on( '' );
+	$check( 'level: the shop lists the top categories', $top === $names( $shop ) && in_array( 'Audio', $top, true ) && ! in_array( 'Headphones', $top, true ) && empty( $shop['back'] ), $names( $shop ) );
+
+	$parent = $on( 'audio' );
+	$check( 'level: a category lists its subcategories', array( 'Headphones', 'Speakers' ) === $names( $parent ) && array() === $current( $parent ), $names( $parent ) );
+	$check( 'level: a top category leads back to all products', wc_get_page_permalink( 'shop' ) === ( $parent['back']['url'] ?? '' ), $parent['back'] ?? null );
+
+	$leaf = $on( 'headphones' );
+	$check( 'level: a category without subcategories lists the ones beside it', array( 'Headphones', 'Speakers' ) === $names( $leaf ) && array( 'Headphones' ) === $current( $leaf ), $leaf );
+	$check( 'level: a subcategory leads back one level up', get_term_link( $term( 'audio' ) ) === ( $leaf['back']['url'] ?? '' ) && false !== strpos( $leaf['back']['label'] ?? '', 'Audio' ), $leaf['back'] ?? null );
+	$check( 'level: the count is what the category page lists', count( $expect( static fn( $p ) => $in_category( $p, 'speakers' ) ) ) === (int) ( array_column( $leaf['options'], 'count', 'label' )['Speakers'] ?? -1 ) );
+
+	$alone = $on( 'home' );
+	$check( 'level: a top category without subcategories lists the top categories', $top === $names( $alone ) && array( 'Home' ) === $current( $alone ), $alone );
+
+	$check( 'level: links read nothing from the URL', array() === $walked->parse( 'audio' ) );
+
+	$GLOBALS['wp_query'] = $main_query;
+
+	$path  = static fn( string $slug ): string => (string) wp_parse_url( (string) get_term_link( $term( $slug ) ), PHP_URL_PATH );
+	$level = array(
+		'leaf'   => $path( 'headphones' ),
+		'beside' => $path( 'speakers' ),
+		'above'  => $path( 'audio' ),
+	);
 }
 
 // --- Product properties of the store.
@@ -603,6 +669,24 @@ $check( 'settings: a title is stored as plain text', 'Shop by type' === ( $expor
 $links = \Starfiniti\Filters\Settings::filters();
 $first = reset( $links );
 $check( 'settings: a filter shown as links reads nothing from the URL', false !== $first && array() === $first->parse( 'audio' ) );
+
+\Starfiniti\Filters\Settings::save(
+	array(
+		'filters' => array(
+			array(
+				'source'  => 'product_cat',
+				'display' => 'level',
+			),
+			array(
+				'source'  => 'product_tag',
+				'display' => 'sideways',
+			),
+		),
+	)
+);
+
+$export = \Starfiniti\Filters\Settings::export();
+$check( 'settings: a taxonomy can be shown one level at a time', 'level' === ( $export['filters'][0]['display'] ?? '' ) && 'checkboxes' === ( $export['filters'][1]['display'] ?? '' ), $export['filters'] );
 
 \Starfiniti\Filters\Settings::save( array( 'filters' => array() ) );
 $check( 'settings: an empty saved list means no filters', array() === \Starfiniti\Filters\Settings::filters() );
@@ -805,6 +889,7 @@ if ( wp_mkdir_p( dirname( $report ) ) ) {
 				'http'       => $http,
 				'loop'       => $loop,
 				'properties' => $properties,
+				'level'      => $level,
 			)
 		)
 	);

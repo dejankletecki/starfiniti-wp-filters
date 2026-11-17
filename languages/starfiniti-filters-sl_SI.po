@@ -237,3 +237,10 @@ msgstr "%s do"
 #. translators: 1: filter title, for example Length. 2: the chosen range, for example 30 cm – 120 cm.
 msgid "%1$s: %2$s"
 msgstr "%1$s: %2$s"
+
+#. translators: %s: name of the category one level up.
+msgid "Back to %s"
+msgstr "Nazaj na %s"
+
+msgid "Links, one level at a time"
+msgstr "Povezave po eni ravni"
