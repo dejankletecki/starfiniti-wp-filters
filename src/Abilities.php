@@ -40,7 +40,7 @@ final class Abilities {
 			'properties' => array(
 				'source'  => array(
 					'type'        => 'string',
-					'description' => 'What the filter is built from: a product taxonomy such as product_cat, product_brand, product_tag or pa_color, or price, stock or sale. get-settings lists them in available_sources.',
+					'description' => 'What the filter is built from: a product taxonomy such as product_cat, product_brand, product_tag or pa_color, a product property the store registers, or price, stock or sale. get-settings lists them in available_sources.',
 				),
 				'label'   => array(
 					'type'        => 'string',

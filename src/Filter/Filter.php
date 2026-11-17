@@ -52,11 +52,11 @@ abstract class Filter {
 	/**
 	 * Returns the conditions for the product query.
 	 *
-	 * `tax_query` holds one clause for WP_Tax_Query. `lookup` holds conditions on the
-	 * WooCommerce product lookup table, see Query::lookup_clauses().
+	 * `tax_query` holds one clause for WP_Tax_Query, `meta_query` one clause for WP_Meta_Query.
+	 * `lookup` holds conditions on the WooCommerce product lookup table, see Query::lookup_clauses().
 	 *
 	 * @param array $values Clean values from parse().
-	 * @return array{tax_query?: array, lookup?: array}
+	 * @return array{tax_query?: array, meta_query?: array, lookup?: array}
 	 */
 	abstract public function clauses( array $values ): array;
 
@@ -85,6 +85,32 @@ abstract class Filter {
 	 */
 	public function format( array $values ): string {
 		return implode( ',', $values );
+	}
+
+	/**
+	 * Tells whether too few of the listed products have a value for the filter to be worth showing.
+	 *
+	 * @param string $ids_sql SQL that selects the IDs of the listed products.
+	 * @param int    $with    How many of them have a value.
+	 * @param float  $share   The smallest share that still shows the filter. Zero always shows it.
+	 */
+	protected static function sparse( string $ids_sql, int $with, float $share ): bool {
+		static $listed = array();
+
+		if ( $share <= 0 ) {
+			return false;
+		}
+
+		$key = md5( $ids_sql );
+
+		if ( ! isset( $listed[ $key ] ) ) {
+			global $wpdb;
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- $ids_sql is built by WP_Query.
+			$listed[ $key ] = (int) $wpdb->get_var( "SELECT COUNT( * ) FROM ( {$ids_sql} ) AS listed" );
+		}
+
+		return $listed[ $key ] > 0 && $with / $listed[ $key ] < $share;
 	}
 
 	/**

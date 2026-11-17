@@ -27,6 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  *     # Continue the product list with a "Load more" button.
  *     $ wp sffilters pagination more
+ *
+ *     # Work out the product properties of the store again.
+ *     $ wp sffilters rebuild
  */
 final class Cli {
 
@@ -107,7 +110,7 @@ final class Cli {
 	 * ## OPTIONS
 	 *
 	 * <source>
-	 * : A product taxonomy such as product_tag or pa_color, or price, stock or sale. See `wp sffilters sources`.
+	 * : A product taxonomy such as product_tag or pa_color, a product property of the store, or price, stock or sale. See `wp sffilters sources`.
 	 *
 	 * [--label=<label>]
 	 * : Title in the panel. Defaults to the name of the source.
@@ -278,6 +281,36 @@ final class Cli {
 
 		$this->save( array( 'pagination' => $args[0] ) );
 		WP_CLI::success( sprintf( 'The product list now continues with: %s.', $args[0] ) );
+	}
+
+	/**
+	 * Works out the product properties of the store again for every product.
+	 *
+	 * Saving a product updates that product on its own. Run this once after the store registers
+	 * a property or changes the rules of one.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp sffilters rebuild
+	 *     Success: Updated the properties of 350 products.
+	 */
+	public function rebuild(): void {
+		$properties = Properties::all();
+
+		if ( array() === $properties ) {
+			WP_CLI::warning( 'This store registers no product properties. See the sffilters_properties filter.' );
+			return;
+		}
+
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Only sizes the progress bar.
+		$total    = (int) $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->posts} WHERE post_type = 'product' AND post_status NOT IN ( 'trash', 'auto-draft' )" );
+		$progress = Utils\make_progress_bar( sprintf( 'Working out %s', implode( ', ', array_keys( $properties ) ) ), $total );
+		$done     = Properties::rebuild( static fn() => $progress->tick() );
+
+		$progress->finish();
+		WP_CLI::success( sprintf( 'Updated the properties of %d products.', $done ) );
 	}
 
 	/**

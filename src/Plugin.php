@@ -53,6 +53,7 @@ final class Plugin {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 
 		( new Query() )->register();
+		( new Properties() )->register();
 		( new MainQuery() )->register();
 		$this->panel()->register();
 		( new Abilities() )->register();

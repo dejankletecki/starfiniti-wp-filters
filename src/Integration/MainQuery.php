@@ -52,7 +52,7 @@ final class MainQuery {
 
 		$query_vars = Query::apply( $query->query_vars, $plugin->filters(), $state );
 
-		foreach ( array( 'tax_query', Query::LOOKUP_VAR ) as $key ) {
+		foreach ( array( 'tax_query', 'meta_query', Query::LOOKUP_VAR ) as $key ) {
 			if ( isset( $query_vars[ $key ] ) ) {
 				$query->set( $key, $query_vars[ $key ] );
 			}

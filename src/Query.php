@@ -28,15 +28,16 @@ final class Query {
 	}
 
 	/**
-	 * Adds the conditions of every filter in use to a set of WP_Query vars.
+	 * Adds the conditions of every filter in use to a set of WP_Query vars: `tax_query`, `meta_query` and LOOKUP_VAR.
 	 *
 	 * @param array                 $query_vars WP_Query vars.
 	 * @param array<string, Filter> $filters    Filters keyed by slug.
 	 * @param State                 $state      Filter values.
 	 */
 	public static function apply( array $query_vars, array $filters, State $state ): array {
-		$tax_clauses = array();
-		$lookup      = array();
+		$tax_clauses  = array();
+		$meta_clauses = array();
+		$lookup       = array();
 
 		foreach ( $state->all() as $slug => $values ) {
 			if ( ! isset( $filters[ $slug ] ) ) {
@@ -49,22 +50,35 @@ final class Query {
 				$tax_clauses[] = $clauses['tax_query'];
 			}
 
+			if ( ! empty( $clauses['meta_query'] ) ) {
+				$meta_clauses[] = $clauses['meta_query'];
+			}
+
 			if ( ! empty( $clauses['lookup'] ) ) {
 				$lookup = array_merge( $lookup, $clauses['lookup'] );
 			}
 		}
 
-		if ( array() !== $tax_clauses ) {
-			$existing = isset( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ? $query_vars['tax_query'] : array();
+		$added = array(
+			'tax_query'  => $tax_clauses,
+			'meta_query' => $meta_clauses,
+		);
 
-			$query_vars['tax_query'] = array() === $existing
-				? $tax_clauses
+		foreach ( $added as $key => $clauses ) {
+			if ( array() === $clauses ) {
+				continue;
+			}
+
+			$existing = isset( $query_vars[ $key ] ) && is_array( $query_vars[ $key ] ) ? $query_vars[ $key ] : array();
+
+			$query_vars[ $key ] = array() === $existing
+				? $clauses
 				: array_merge(
 					array(
 						'relation' => 'AND',
 						$existing,
 					),
-					$tax_clauses
+					$clauses
 				);
 		}
 

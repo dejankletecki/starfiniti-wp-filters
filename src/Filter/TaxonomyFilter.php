@@ -22,11 +22,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class TaxonomyFilter extends Filter {
 
+	/**
+	 * @param string $slug     Filter slug.
+	 * @param string $label    Title in the panel.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param bool   $links    Show the terms as links to their own pages.
+	 * @param float  $share    Hide the filter when a smaller share of the listed products has a term.
+	 */
 	public function __construct(
 		string $slug,
 		string $label,
 		private string $taxonomy,
-		private bool $links = false
+		private bool $links = false,
+		private float $share = 0.0
 	) {
 		parent::__construct( $slug, $label );
 	}
@@ -62,6 +70,10 @@ final class TaxonomyFilter extends Filter {
 
 		// On the archive of a flat taxonomy, such as a brand page, there is nothing left to choose.
 		if ( 0 !== $root && ! $hierarchical ) {
+			return array();
+		}
+
+		if ( array() === $values && $this->share > 0 && self::sparse( $ids_sql, $this->with_term( $ids_sql ), $this->share ) ) {
 			return array();
 		}
 
@@ -252,6 +264,21 @@ final class TaxonomyFilter extends Filter {
 		}
 
 		return array_map( 'count', $products );
+	}
+
+	/**
+	 * Counts the listed products that have at least one term of this taxonomy.
+	 */
+	private function with_term( string $ids_sql ): int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- $ids_sql is built by WP_Query, the taxonomy is escaped.
+		return (int) $wpdb->get_var(
+			"SELECT COUNT( DISTINCT tr.object_id )
+			FROM {$wpdb->term_relationships} AS tr
+			INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+			WHERE tt.taxonomy = '" . esc_sql( $this->taxonomy ) . "' AND tr.object_id IN ( {$ids_sql} )"
+		);
 	}
 
 	/**

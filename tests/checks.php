@@ -29,33 +29,6 @@ $check = static function ( string $name, bool $pass, $detail = '' ) use ( &$sffi
 
 $saved_settings = get_option( 'sffilters_settings', null );
 
-// A known set of filters, whatever the store had saved.
-$saved = \Starfiniti\Filters\Settings::save(
-	array(
-		'pagination' => 'pages',
-		'filters'    => array(
-			array(
-				'source' => 'product_cat',
-				'slug'   => 'cat',
-			),
-			array(
-				'source' => 'product_brand',
-				'slug'   => 'brand',
-			),
-			array(
-				'source' => 'pa_color',
-				'slug'   => 'color',
-			),
-			array( 'source' => 'price' ),
-			array( 'source' => 'stock' ),
-			array( 'source' => 'sale' ),
-		),
-	)
-);
-
-$check( 'settings: a valid list of filters is saved', true === $saved, is_wp_error( $saved ) ? $saved->get_error_message() : '' );
-
-$filters  = \Starfiniti\Filters\Settings::filters();
 $products = wc_get_products(
 	array(
 		'limit'  => -1,
@@ -64,6 +37,50 @@ $products = wc_get_products(
 );
 
 $check( 'catalog: the demo catalog has 24 products', 24 === count( $products ), count( $products ) );
+
+// Only the demo store gets the test properties and the test layout. tests/run.mjs asks for their pages.
+$demo  = 24 === count( $products );
+$known = array(
+	array(
+		'source' => 'product_cat',
+		'slug'   => 'cat',
+	),
+	array(
+		'source' => 'product_brand',
+		'slug'   => 'brand',
+	),
+	array(
+		'source' => 'pa_color',
+		'slug'   => 'color',
+	),
+	array( 'source' => 'price' ),
+	array( 'source' => 'stock' ),
+	array( 'source' => 'sale' ),
+);
+
+if ( $demo ) {
+	require_once SFFILTERS_PLUGIN_DIR . 'tests/properties.php';
+
+	\Starfiniti\Filters\Properties::register_taxonomies();
+
+	$check( 'properties: only usable properties are registered', array( 'tone', 'length' ) === array_keys( \Starfiniti\Filters\Properties::all() ), array_keys( \Starfiniti\Filters\Properties::all() ) );
+	$check( 'properties: every product is worked out', count( $products ) === \Starfiniti\Filters\Properties::rebuild() );
+
+	$known[] = array( 'source' => 'tone' );
+	$known[] = array( 'source' => 'length' );
+}
+
+// A known set of filters, whatever the store had saved.
+$saved = \Starfiniti\Filters\Settings::save(
+	array(
+		'pagination' => 'pages',
+		'filters'    => $known,
+	)
+);
+
+$check( 'settings: a valid list of filters is saved', true === $saved, is_wp_error( $saved ) ? $saved->get_error_message() : '' );
+
+$filters = \Starfiniti\Filters\Settings::filters();
 
 // --- What the products say.
 
@@ -217,6 +234,54 @@ $cases = array(
 	),
 );
 
+$tones  = static fn( $p ) => (array) sffilters_test_tone( $p->get_id() );
+$length = static fn( $p ) => sffilters_test_length( $p->get_id() );
+
+if ( $demo ) {
+	$cases += array(
+		'property'                                  => array(
+			array( 'sf_tone' => 'dark' ),
+			static fn( $p ) => in_array( 'Dark', $tones( $p ), true ),
+		),
+		'property with two values on one product'   => array(
+			array( 'sf_tone' => 'bright' ),
+			static fn( $p ) => in_array( 'Bright', $tones( $p ), true ),
+		),
+		'two values of a property widen the list'   => array(
+			array( 'sf_tone' => 'dark,light' ),
+			static fn( $p ) => array() !== array_intersect( array( 'Dark', 'Light' ), $tones( $p ) ),
+		),
+		'number range'                              => array(
+			array( 'sf_length' => '10-30' ),
+			static fn( $p ) => null !== $length( $p ) && $length( $p ) >= 10 && $length( $p ) <= 30,
+		),
+		'number from'                               => array(
+			array( 'sf_length' => '40-' ),
+			static fn( $p ) => null !== $length( $p ) && $length( $p ) >= 40,
+		),
+		'number up to, with a decimal comma'        => array(
+			array( 'sf_length' => '-12,5' ),
+			static fn( $p ) => null !== $length( $p ) && $length( $p ) <= 12.5,
+		),
+		'property, number and category at once'     => array(
+			array(
+				'sf_tone'   => 'dark',
+				'sf_length' => '5-',
+				'sf_cat'    => 'audio',
+			),
+			static fn( $p ) => in_array( 'Dark', $tones( $p ), true ) && null !== $length( $p ) && $length( $p ) >= 5 && $in_category( $p, 'audio' ),
+		),
+		'a number that is not a number is ignored'  => array(
+			array( 'sf_length' => 'long' ),
+			'__return_true',
+		),
+		'a property value nobody has finds nothing' => array(
+			array( 'sf_tone' => 'no-such-tone' ),
+			'__return_false',
+		),
+	);
+}
+
 foreach ( $cases as $name => $case ) {
 	$expected = $expect( $case[1] );
 	$actual   = $found( $case[0] );
@@ -269,8 +334,7 @@ $tags = get_terms(
 	)
 );
 
-// Only the demo store gets the test layout. tests/run.mjs asks for these pages.
-if ( 24 === count( $products ) && is_array( $tags ) && array() !== $tags ) {
+if ( $demo && is_array( $tags ) && array() !== $tags ) {
 	$tag    = $tags[0];
 	$tagged = static fn( $p ) => in_array( $tag->slug, $slugs( $p, 'product_tag' ), true );
 	$brand  = '';
@@ -291,7 +355,10 @@ if ( 24 === count( $products ) && is_array( $tags ) && array() !== $tags ) {
 	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- A helper of a test run.
 	file_put_contents(
 		WPMU_PLUGIN_DIR . '/sffilters-test-loop.php',
-		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Draws product tag pages without the WooCommerce loop hooks.\n"
+		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Registers the test properties and draws product tag pages\n// without the WooCommerce loop hooks.\n"
+		. "add_action(\n\t'plugins_loaded',\n\tstatic function () {\n"
+		. "\t\tif ( defined( 'SFFILTERS_PLUGIN_DIR' ) ) {\n\t\t\trequire_once SFFILTERS_PLUGIN_DIR . 'tests/properties.php';\n\t\t}\n"
+		. "\t},\n\t5\n);\n"
 		. "add_filter(\n\t'template_include',\n\tstatic function ( \$template ) {\n"
 		. "\t\treturn defined( 'SFFILTERS_PLUGIN_DIR' ) && is_tax( 'product_tag' ) ? SFFILTERS_PLUGIN_DIR . 'tests/custom-loop.php' : \$template;\n"
 		. "\t},\n\tPHP_INT_MAX\n);\n"
@@ -376,9 +443,126 @@ foreach ( array( 'wearables', 'home' ) as $category ) {
 	$check( 'counts: products on sale in the category ' . $category, 0 === $expected ? array() === $sale : ( $sale['count'] ?? -1 ) === $expected, $sale );
 }
 
+// --- Product properties of the store.
+
+$properties = null;
+
+if ( $demo ) {
+	$stored = true;
+
+	foreach ( $products as $product ) {
+		$names = wp_get_object_terms( $product->get_id(), \Starfiniti\Filters\Properties::taxonomy( 'tone' ), array( 'fields' => 'names' ) );
+		$names = is_array( $names ) ? $names : array();
+		$tone  = $tones( $product );
+		$meta  = get_post_meta( $product->get_id(), \Starfiniti\Filters\Properties::meta_key( 'length' ), true );
+
+		sort( $names );
+		sort( $tone );
+
+		$stored = $stored && $names === $tone && ( null === $length( $product ) ? '' === $meta : (float) $meta === $length( $product ) );
+	}
+
+	$check( 'properties: the values kept with the products are what the store works out', $stored );
+
+	$found_tones = $flatten( $facet( 'tone', array( 'sf_cat' => 'audio' ) )['options'] ?? array() );
+	$expected    = array();
+
+	foreach ( array( 'bright', 'dark', 'light' ) as $tone ) {
+		$expected[ $tone ] = count( $expect( static fn( $p ) => $in_category( $p, 'audio' ) && in_array( ucfirst( $tone ), $tones( $p ), true ) ) );
+	}
+
+	ksort( $found_tones );
+	$check(
+		'properties: counts of a property inside a chosen category',
+		$expected === $found_tones,
+		array(
+			'expected' => $expected,
+			'found'    => $found_tones,
+		)
+	);
+
+	$lengths = array_filter( array_map( $length, array_filter( $products, static fn( $p ) => in_array( 'anker', $slugs( $p, 'product_brand' ), true ) ) ), 'is_float' );
+	$range   = $facet( 'length', array( 'sf_brand' => 'anker', 'sf_length' => '1-' ) );
+	$check( 'properties: number range of a chosen brand', array() !== $lengths && floor( min( $lengths ) ) === (float) ( $range['min'] ?? -1 ) && ceil( max( $lengths ) ) === (float) ( $range['max'] ?? -1 ) && 'cm' === ( $range['unit'] ?? '' ), $range );
+
+	// A property is hidden where too few of the listed products have a value: tone needs 40 %, length 60 %.
+	$share = static function ( array $request, callable $has ) use ( $filters, $state, $found, $products ): float {
+		$listed = $found( $request );
+		$with   = 0;
+
+		foreach ( $products as $product ) {
+			if ( in_array( $product->get_id(), $listed, true ) && $has( $product ) ) {
+				++$with;
+			}
+		}
+
+		return array() === $listed ? 0.0 : $with / count( $listed );
+	};
+
+	$has_tone   = static fn( $p ) => array() !== $tones( $p );
+	$has_length = static fn( $p ) => null !== $length( $p );
+	$few        = array( 'sf_price' => '75-99' );
+	$enough     = array( 'sf_price' => '51-99' );
+
+	$check( 'properties: the test ranges sit on both sides of the share', $share( $few, $has_tone ) > 0 && $share( $few, $has_tone ) < 0.4 && $share( $enough, $has_tone ) >= 0.4, array( $share( $few, $has_tone ), $share( $enough, $has_tone ) ) );
+	$check( 'properties: a property few of the listed products have is hidden', array() === $facet( 'tone', $few ) );
+	$check( 'properties: a property enough of the listed products have is shown', array() !== $facet( 'tone', $enough ) );
+	$check( 'properties: a hidden property stays visible while it is in use', array() !== $facet( 'tone', $few + array( 'sf_tone' => 'dark' ) ) );
+
+	$check( 'properties: the whole shop is below the share of the number', $share( array(), $has_length ) < 0.6 && $share( array( 'sf_cat' => 'headphones' ), $has_length ) >= 0.6 );
+	$check( 'properties: a number few of the listed products have is hidden', array() === $facet( 'length', array() ) );
+	$check( 'properties: a number enough of the listed products have is shown', 'range' === ( $facet( 'length', array( 'sf_cat' => 'headphones' ) )['kind'] ?? '' ) );
+	$check( 'properties: a hidden number stays visible while it is in use', 'range' === ( $facet( 'length', array( 'sf_length' => '10-30' ) )['kind'] ?? '' ) );
+
+	$chip = $filters['length']->selected( $filters['length']->parse( '10-30' ) )[0]['label'] ?? '';
+	$check( 'properties: the selected range names its filter and its unit', false !== strpos( $chip, 'Length' ) && false !== strpos( $chip, '10 cm' ) && false !== strpos( $chip, '30 cm' ), $chip );
+
+	// Saving a product works its properties out again.
+	$even = null;
+
+	foreach ( $products as $product ) {
+		if ( null === $length( $product ) ) {
+			$even = wc_get_product( $product->get_id() );
+			break;
+		}
+	}
+
+	if ( $even instanceof WC_Product ) {
+		$even->set_weight( '77.5' );
+		$even->save();
+
+		$check( 'properties: saving a product stores its new value', 77.5 === (float) get_post_meta( $even->get_id(), \Starfiniti\Filters\Properties::meta_key( 'length' ), true ) );
+		$check( 'properties: the new value is found by the filter', in_array( $even->get_id(), $found( array( 'sf_length' => '77-78' ) ), true ) );
+
+		$even->set_weight( '' );
+		$even->save();
+
+		$check( 'properties: a value the product no longer has is removed', '' === get_post_meta( $even->get_id(), \Starfiniti\Filters\Properties::meta_key( 'length' ), true ) );
+	}
+
+	$stale = wp_insert_term( 'Stale', \Starfiniti\Filters\Properties::taxonomy( 'tone' ) );
+	\Starfiniti\Filters\Properties::rebuild();
+	$check( 'properties: a rebuild removes values no product has', ! is_wp_error( $stale ) && null === get_term( $stale['term_id'], \Starfiniti\Filters\Properties::taxonomy( 'tone' ) ) );
+
+	$headphones = get_term_by( 'slug', 'headphones', 'product_cat' );
+	$properties = array(
+		'path' => $headphones instanceof WP_Term ? (string) wp_parse_url( (string) get_term_link( $headphones ), PHP_URL_PATH ) : '',
+	);
+}
+
 // --- Settings.
 
 $before = get_option( 'sffilters_settings' );
+
+if ( $demo ) {
+	$result = \Starfiniti\Filters\Settings::save( array( 'filters' => array( array( 'source' => \Starfiniti\Filters\Properties::taxonomy( 'tone' ) ) ) ) );
+	$check( 'settings: the taxonomy behind a property is not a source of its own', is_wp_error( $result ) && 'sffilters_unknown_source' === $result->get_error_code() );
+
+	$export = \Starfiniti\Filters\Settings::export();
+	$named  = array_column( $export['filters'], 'param', 'source' );
+	$check( 'settings: a property is saved by its name', 'sf_tone' === ( $named['tone'] ?? '' ) && 'sf_length' === ( $named['length'] ?? '' ), $export['filters'] );
+	$check( 'settings: properties are listed as sources', array( 'tone', 'length' ) === array_values( array_intersect( array_column( $export['available_sources'], 'source' ), array( 'tone', 'length' ) ) ) );
+}
 
 $result = \Starfiniti\Filters\Settings::save( array( 'filters' => array( array( 'source' => 'no_such_taxonomy' ) ) ) );
 $check( 'settings: an unknown source is refused', is_wp_error( $result ) && 'sffilters_unknown_source' === $result->get_error_code() );
@@ -430,6 +614,11 @@ if ( null === $saved_settings ) {
 	delete_option( 'sffilters_settings' );
 } else {
 	update_option( 'sffilters_settings', $saved_settings );
+}
+
+// The demo store keeps the two property filters, so tests/run.mjs finds them on the shop pages.
+if ( $demo ) {
+	\Starfiniti\Filters\Settings::save( array( 'filters' => array_merge( \Starfiniti\Filters\Settings::definitions(), array( array( 'source' => 'tone' ), array( 'source' => 'length' ) ) ) ) );
 }
 
 // --- Updates. GitHub is played by the list below, nothing leaves the machine.
@@ -612,9 +801,10 @@ if ( wp_mkdir_p( dirname( $report ) ) ) {
 		$report,
 		(string) wp_json_encode(
 			array(
-				'checks' => $sffilters_results,
-				'http'   => $http,
-				'loop'   => $loop,
+				'checks'     => $sffilters_results,
+				'http'       => $http,
+				'loop'       => $loop,
+				'properties' => $properties,
 			)
 		)
 	);

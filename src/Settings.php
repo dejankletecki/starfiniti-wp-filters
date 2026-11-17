@@ -8,6 +8,7 @@
 namespace Starfiniti\Filters;
 
 use Starfiniti\Filters\Filter\Filter;
+use Starfiniti\Filters\Filter\NumberFilter;
 use Starfiniti\Filters\Filter\PriceFilter;
 use Starfiniti\Filters\Filter\SaleFilter;
 use Starfiniti\Filters\Filter\StockFilter;
@@ -24,9 +25,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The settings page, WP-CLI and the abilities all go through this class.
  *
  * A stored filter definition is an array: `slug` (used in the URL as `sf_<slug>`), `source`
- * (`taxonomy`, `price`, `stock` or `sale`), `taxonomy` for taxonomy filters, an optional `label` and,
- * for taxonomy filters, `display` set to `links` when the terms lead to their own pages.
- * When reading input, `source` may also name the taxonomy directly, for example `pa_color`.
+ * (`taxonomy`, `property`, `price`, `stock` or `sale`), `taxonomy` for taxonomy filters, `property` for
+ * filters by a product property of the store (see Properties), an optional `label` and, for taxonomy
+ * filters, `display` set to `links` when the terms lead to their own pages.
+ * When reading input, `source` may also name the taxonomy or the property directly, for example `pa_color`.
  */
 final class Settings {
 
@@ -198,7 +200,7 @@ final class Settings {
 				'slug'          => $definition['slug'],
 				'source'        => $key,
 				'label'         => $definition['label'] ?? '',
-				'default_label' => self::default_label( $definition['source'], $definition['taxonomy'] ?? '' ),
+				'default_label' => self::default_label( $definition['source'], self::key( $definition ) ),
 				'display'       => 'taxonomy' === $definition['source'] ? ( $definition['display'] ?? 'checkboxes' ) : '',
 				'param'         => 'sf_' . $definition['slug'],
 			);
@@ -222,9 +224,11 @@ final class Settings {
 	}
 
 	/**
-	 * Lists what a filter can be built from: the product taxonomies, then price, availability and sale.
+	 * Lists what a filter can be built from: the product taxonomies, the product properties of the store,
+	 * then price, availability and sale.
 	 *
-	 * Keyed by the short source name, which is the taxonomy name or `price`, `stock` or `sale`. Call after `init`.
+	 * Keyed by the short source name, which is the taxonomy name, the property name or `price`, `stock` or `sale`.
+	 * Call after `init`.
 	 *
 	 * @return array<string, array{source: string, taxonomy: string, label: string, slug: string, attribute: bool}>
 	 */
@@ -257,6 +261,16 @@ final class Settings {
 
 		$sources = array_merge( array_intersect_key( array_flip( array( 'product_cat', 'product_brand', 'product_tag' ) ), $first ), $first ) + $rest;
 
+		foreach ( Properties::all() as $key => $property ) {
+			$sources[ $key ] = array(
+				'source'    => 'property',
+				'taxonomy'  => '',
+				'label'     => $property['label'],
+				'slug'      => self::default_slug( 'property', $key ),
+				'attribute' => false,
+			);
+		}
+
 		foreach ( self::SOURCES as $source ) {
 			$sources[ $source ] = array(
 				'source'    => $source,
@@ -271,12 +285,18 @@ final class Settings {
 	}
 
 	/**
-	 * Returns the short source name of a definition: the taxonomy name, or `price`, `stock` or `sale`.
+	 * Returns the short source name of a definition: the taxonomy name, the property name, or `price`, `stock` or `sale`.
 	 *
 	 * @param array $definition Stored filter definition.
 	 */
 	public static function key( array $definition ): string {
-		return 'taxonomy' === ( $definition['source'] ?? '' ) ? (string) ( $definition['taxonomy'] ?? '' ) : (string) ( $definition['source'] ?? '' );
+		$source = (string) ( $definition['source'] ?? '' );
+
+		if ( 'taxonomy' === $source || 'property' === $source ) {
+			return (string) ( $definition[ $source ] ?? '' );
+		}
+
+		return $source;
 	}
 
 	/**
@@ -330,26 +350,41 @@ final class Settings {
 	 * @return array|WP_Error
 	 */
 	private static function normalize( array $definition ) {
-		$source   = self::text( $definition, 'source' );
-		$taxonomy = self::text( $definition, 'taxonomy' );
+		$source     = self::text( $definition, 'source' );
+		$taxonomy   = self::text( $definition, 'taxonomy' );
+		$property   = self::text( $definition, 'property' );
+		$properties = Properties::all();
 
-		// A taxonomy may be named directly, for example `pa_color`.
-		if ( 'taxonomy' !== $source && ! in_array( $source, self::SOURCES, true ) ) {
-			$taxonomy = $source;
-			$source   = 'taxonomy';
+		// A taxonomy or a property may be named directly, for example `pa_color`.
+		if ( 'taxonomy' !== $source && 'property' !== $source && ! in_array( $source, self::SOURCES, true ) ) {
+			if ( isset( $properties[ $source ] ) ) {
+				$property = $source;
+				$source   = 'property';
+			} else {
+				$taxonomy = $source;
+				$source   = 'taxonomy';
+			}
 		}
 
-		if ( 'taxonomy' === $source && ( in_array( $taxonomy, self::HIDDEN, true ) || ! taxonomy_exists( $taxonomy ) || ! is_object_in_taxonomy( 'product', $taxonomy ) ) ) {
+		// The taxonomy behind a property is reached through the property, not by its own name.
+		$unknown = 'taxonomy' === $source && ( in_array( $taxonomy, self::HIDDEN, true ) || str_starts_with( $taxonomy, 'sffilters_' ) || ! taxonomy_exists( $taxonomy ) || ! is_object_in_taxonomy( 'product', $taxonomy ) );
+
+		if ( $unknown || ( 'property' === $source && ! isset( $properties[ $property ] ) ) ) {
 			/* translators: %s: what was given as the filter source. */
-			return new WP_Error( 'sffilters_unknown_source', sprintf( __( '"%s" is not a filter source.', 'starfiniti-filters' ), $taxonomy ), array( 'status' => 400 ) );
+			return new WP_Error( 'sffilters_unknown_source', sprintf( __( '"%s" is not a filter source.', 'starfiniti-filters' ), 'property' === $source ? $property : $taxonomy ), array( 'status' => 400 ) );
 		}
 
+		$name  = 'property' === $source ? $property : $taxonomy;
 		$slug  = sanitize_key( self::text( $definition, 'slug' ) );
 		$label = trim( wp_strip_all_tags( self::text( $definition, 'label' ) ) );
 		$clean = array(
-			'slug'   => '' !== $slug ? $slug : self::default_slug( $source, $taxonomy ),
+			'slug'   => '' !== $slug ? $slug : self::default_slug( $source, $name ),
 			'source' => $source,
 		);
+
+		if ( 'property' === $source ) {
+			$clean['property'] = $property;
+		}
 
 		if ( 'taxonomy' === $source ) {
 			$clean['taxonomy'] = $taxonomy;
@@ -378,10 +413,14 @@ final class Settings {
 	/**
 	 * Returns the title a filter gets when the store sets none.
 	 *
-	 * @param string $source   `taxonomy`, `price`, `stock` or `sale`.
-	 * @param string $taxonomy Taxonomy name for taxonomy filters.
+	 * @param string $source   `taxonomy`, `property`, `price`, `stock` or `sale`.
+	 * @param string $taxonomy Taxonomy name for taxonomy filters, property name for property filters.
 	 */
 	public static function default_label( string $source, string $taxonomy ): string {
+		if ( 'property' === $source ) {
+			return Properties::all()[ $taxonomy ]['label'] ?? $taxonomy;
+		}
+
 		switch ( 'taxonomy' === $source ? $taxonomy : $source ) {
 			case 'price':
 				return __( 'Price', 'starfiniti-filters' );
@@ -415,6 +454,10 @@ final class Settings {
 	 * Returns the slug a filter gets when none is given, for example `color` for `pa_color`.
 	 */
 	private static function default_slug( string $source, string $taxonomy ): string {
+		if ( 'property' === $source ) {
+			return sanitize_key( str_replace( '_', '-', $taxonomy ) );
+		}
+
 		if ( 'taxonomy' !== $source ) {
 			return $source;
 		}
@@ -448,11 +491,19 @@ final class Settings {
 
 		$slug     = $definition['slug'];
 		$taxonomy = $definition['taxonomy'] ?? '';
-		$label    = $definition['label'] ?? self::default_label( $definition['source'], $taxonomy );
+		$label    = $definition['label'] ?? self::default_label( $definition['source'], self::key( $definition ) );
 
 		switch ( $definition['source'] ) {
 			case 'taxonomy':
 				return new TaxonomyFilter( $slug, $label, $taxonomy, isset( $definition['display'] ) );
+
+			case 'property':
+				$key      = $definition['property'];
+				$property = Properties::all()[ $key ];
+
+				return 'number' === $property['type']
+					? new NumberFilter( $slug, $label, Properties::meta_key( $key ), $property['unit'], $property['share'] )
+					: new TaxonomyFilter( $slug, $label, Properties::taxonomy( $key ), false, $property['share'] );
 
 			case 'price':
 				return new PriceFilter( $slug, $label );

@@ -151,6 +151,17 @@ async function loopChecks( loop ) {
 	check( 'layout: the chosen value can be removed above the products', /sffilters-chip/.test( filtered.html ) && ! /sffilters-chip/.test( plain.html ) );
 }
 
+// Filters by what the store works out for its products, see tests/properties.php.
+async function propertyChecks( properties ) {
+	const shop = await page( '/shop/' );
+	const category = await page( properties.path );
+
+	check( 'properties: the property is in the panel', /name="sf_tone\[\]"[^>]*value="dark"|value="dark"[^>]*name="sf_tone\[\]"/.test( shop.html ) );
+	check( 'properties: the number is left out where few products have it', ! shop.html.includes( 'name="sf_length[min]"' ) );
+	check( 'properties: the number is in the panel where enough products have it', category.status === 200 && category.html.includes( 'name="sf_length[min]"' ), category.status );
+	check( 'properties: the number shows its unit', /sffilters-range__unit">cm</.test( category.html ) );
+}
+
 try {
 	if ( ! external ) {
 		await startPlayground();
@@ -167,6 +178,10 @@ try {
 
 	if ( fromPhp.loop ) {
 		await loopChecks( fromPhp.loop );
+	}
+
+	if ( fromPhp.properties ) {
+		await propertyChecks( fromPhp.properties );
 	}
 } catch ( error ) {
 	check( 'the test run itself', false, error.stack || error.message );

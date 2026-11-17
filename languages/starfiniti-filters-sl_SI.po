@@ -225,3 +225,15 @@ msgstr "Posodobitev ni nameščena, ker se prenesena datoteka ne ujema z objavlj
 
 msgid "See the release on GitHub for details."
 msgstr "Podrobnosti so v izdaji na GitHubu."
+
+#. translators: %s: filter title, for example Length.
+msgid "%s from"
+msgstr "%s od"
+
+#. translators: %s: filter title, for example Length.
+msgid "%s to"
+msgstr "%s do"
+
+#. translators: 1: filter title, for example Length. 2: the chosen range, for example 30 cm – 120 cm.
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"

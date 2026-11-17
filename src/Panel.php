@@ -393,13 +393,13 @@ final class Panel {
 	}
 
 	/**
-	 * Renders the two price inputs. The placeholders show the lowest and highest price on offer.
+	 * Renders the two inputs of a range. The placeholders show the lowest and highest value on offer.
 	 */
 	private function range( string $param, array $facet ): string {
 		$inputs = '';
 		$ends   = array(
-			'min' => array( __( 'Lowest price', 'starfiniti-filters' ), $facet['from'], $facet['min'] ),
-			'max' => array( __( 'Highest price', 'starfiniti-filters' ), $facet['to'], $facet['max'] ),
+			'min' => array( (string) ( $facet['labels'][0] ?? '' ), $facet['from'], $facet['min'] ),
+			'max' => array( (string) ( $facet['labels'][1] ?? '' ), $facet['to'], $facet['max'] ),
 		);
 
 		foreach ( $ends as $end => list( $label, $value, $limit ) ) {
@@ -416,7 +416,7 @@ final class Panel {
 		return sprintf(
 			'<div class="sffilters-range" data-min="%3$s" data-max="%4$s">%1$s<span class="sffilters-range__unit">%2$s</span></div>',
 			$inputs,
-			esc_html( get_woocommerce_currency_symbol() ),
+			esc_html( (string) ( $facet['unit'] ?? '' ) ),
 			esc_attr( (string) (float) $facet['min'] ),
 			esc_attr( (string) (float) $facet['max'] )
 		);
