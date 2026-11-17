@@ -114,6 +114,9 @@ async function shopChecks( expected ) {
 	check( 'shop: the panel is on the page', /name="sf_cat\[\]"[^>]*value="headphones"|value="headphones"[^>]*name="sf_cat\[\]"/.test( shop.html ) );
 	check( 'shop: the unfiltered page is not marked noindex', ! /noindex/.test( robots( shop.html ) ), robots( shop.html ) );
 	check( 'shop: the script knows the page links of the WooCommerce loop, the Breakdance post loop and a Bricks query loop', [ '.woocommerce-pagination a', '.bde-posts-pagination a', '.bricks-pagination a' ].every( ( selector ) => shop.html.includes( selector ) ) );
+	const styles = readFileSync( 'assets/filters.css', 'utf8' );
+
+	check( 'shop: the wrapper keeps the layout of the Breakdance shop element', /\.breakdance-woocommerce > \.sffilters-results \{[^}]*display: inherit;[^}]*flex-flow: inherit;/.test( styles ) );
 	check( 'shop: small screens are marked before the page is drawn', /matchMedia\("\(max-width: 768px\)"\)[^<]*sffilters-mobile/.test( shop.html ) );
 
 	const filtered = await page( '/shop/?sf_cat=headphones' );

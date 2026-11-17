@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.1
+
+- Fixed the Breakdance shop element: the result count and the sorting stay next to each other, as the store laid them out. The wrapper around the results had put them one under the other.
+
 ## 1.4.0
 
 - Added support for Bricks: a query loop set as the main query is filtered, its page links and "Load more" work without a page reload, and lazy images load after a swap. Checked with Bricks 2.4 and B2BKing 5.6.

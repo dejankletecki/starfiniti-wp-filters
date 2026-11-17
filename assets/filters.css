@@ -463,6 +463,26 @@
 	pointer-events: none;
 }
 
+/*
+ * The Breakdance shop element lays the result count, the sorting and the products out itself.
+ * The wrapper around them takes that layout over, so they stay where the store put them.
+ */
+
+.breakdance-woocommerce > .sffilters-results {
+	align-items: inherit;
+	display: inherit;
+	flex-flow: inherit;
+	gap: inherit;
+	justify-content: inherit;
+	width: 100%;
+}
+
+.breakdance-woocommerce > .sffilters-results > :is(.sffilters-bar, .sffilters-more) {
+	flex-basis: 100%;
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.sffilters-results,
 	.sffilters-option__control input[type="checkbox"],
