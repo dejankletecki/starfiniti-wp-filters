@@ -3,7 +3,7 @@
  * Plugin Name:       Starfiniti Filters for WooCommerce
  * Plugin URI:        https://starfiniti.com/
  * Description:       Product filters for the WooCommerce shop your theme already renders.
- * Version:           1.11.1
+ * Version:           1.11.2
  * Update URI:        https://github.com/dejankletecki/starfiniti-wp-filters
  * Requires at least: 6.6
  * Requires PHP:      8.1
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SFFILTERS_VERSION', '1.11.1' );
+define( 'SFFILTERS_VERSION', '1.11.2' );
 define( 'SFFILTERS_PLUGIN_FILE', __FILE__ );
 define( 'SFFILTERS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SFFILTERS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

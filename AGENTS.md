@@ -32,7 +32,7 @@ The previous attempt in this repository grew into an enterprise search platform 
 - `src/Query.php` turns state into `WP_Query` vars. Price, stock and sale go through the WooCommerce product lookup table.
 - `src/Integration/` holds one class per product list the plugin can filter. `MainQuery` covers the WooCommerce shop and archive pages. The Breakdance "Shop Page" element runs the same WooCommerce loop hooks, so `MainQuery` covers it too and it needs no class of its own. `LiteSpeed` keeps the stylesheet and the script of the panel out of the CSS and JS optimization of LiteSpeed Cache, which would otherwise strip the styles and delay the script. A builder loop that draws the main query without those hooks, such as the Breakdance post loop or a Bricks query loop with "Is main query", is filtered by `MainQuery` as well: the store marks its results container with the class `sffilters-results` and places `[sffilters_bar]` and `[sffilters_ordering]` in it.
 - `src/Panel.php` renders the `[sffilters]` form, vertical or with `layout="horizontal"` as a row of `details` buttons, and the bar above the products (mobile button, selected filters). `assets/filters.js` swaps the results and the panel, and adds the drawer (where it wraps the filters of the vertical panel in the same `details` rows), the price slider and "Load more".
-- `languages/` holds the Slovenian `.po` and the compiled `.mo`. Strings the script shows come from PHP through `sffiltersConfig.strings`.
+- `languages/` holds the Slovenian, Croatian and German `.po` files and the compiled `.mo` files. Strings the script shows come from PHP through `sffiltersConfig.strings`.
 - `src/Settings.php` reads and writes `sffilters_settings` and builds the filters. Every way of changing settings goes through `Settings::save()`: `src/Admin/SettingsPage.php` (WooCommerce > Filters, with `assets/admin.js`), `src/Cli.php` (`wp sffilters`) and `src/Abilities.php` (Abilities API, WordPress 6.9+).
 - `src/Updater.php` offers new GitHub releases to WordPress and checks each package against its published SHA-256 checksum before it is installed.
 - `tests/checks.php` holds the checks. It runs inside a real WordPress and works out the expected products from the catalog itself. `tests/run.mjs` starts the Playground store for it and then asks the shop pages. `tests/custom-loop.php` is the layout of a builder loop: the checks switch it on for the product tag pages of the demo store. `tests/properties.php` registers two product properties for the demo store.
@@ -41,7 +41,7 @@ The previous attempt in this repository grew into an enterprise search platform 
 
 - Namespace `Starfiniti\Filters`, PSR-4 under `src/`.
 - Prefix `sffilters_` for options, hooks and handles. CSS classes start with `.sffilters-`.
-- Text domain `starfiniti-filters`. Source strings in English, Slovenian translation in `languages/`.
+- Text domain `starfiniti-filters`. Source strings in English, the Slovenian, Croatian and German translations in `languages/`.
 - WordPress coding standards: tabs, Yoda conditions, escaped output, sanitized input, nonces and capability checks on every write.
 - Settings are one option, `sffilters_settings`.
 - Requirements: WordPress 6.6+, WooCommerce 9.6+, PHP 8.1+.

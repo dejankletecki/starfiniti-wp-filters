@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.2
+
+- Added the German translation (`de_DE`). A German store showed the panel, the "Filters" button and the drawer in English.
+
 ## 1.11.1
 
 - The rows in the drawer keep the same distance in stores that part the filters of their panel with a line and space of their own.

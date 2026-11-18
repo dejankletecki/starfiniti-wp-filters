@@ -245,6 +245,13 @@ async function propertyChecks( properties ) {
 	check( 'horizontal: in the drawer an open filter is as wide as the drawer, not as its longest value', /\.sffilters-drawer \.sffilters-drop__body \{[^}]*position: static;\s*width: auto;/.test( styles ) );
 	const script = readFileSync( 'assets/filters.js', 'utf8' );
 
+	// Every translation holds the same source strings as the Slovenian one and is compiled.
+	const sources = ( locale ) => ( readFileSync( `languages/starfiniti-filters-${ locale }.po`, 'utf8' ).match( /^(?:msgctxt|msgid|msgid_plural) .*$/gm ) ?? [] ).join( '\n' );
+
+	check( 'languages: Croatian and German hold every string the Slovenian translation holds', [ 'hr', 'de_DE' ].every( ( locale ) => sources( locale ) === sources( 'sl_SI' ) && '' !== sources( locale ) ) );
+	check( 'languages: every translation is compiled', [ 'sl_SI', 'hr', 'de_DE' ].every( ( locale ) => readFileSync( `languages/starfiniti-filters-${ locale }.mo` ).length > 1000 ) );
+	check( 'languages: no German string is left empty', ! /^msgstr(\[\d\])? ""$/m.test( readFileSync( 'languages/starfiniti-filters-de_DE.po', 'utf8' ).split( /\r?\n\r?\n/ ).slice( 1 ).join( '\n\n' ) ) );
+
 	check( 'drawer: the script turns the filters of the vertical panel into rows that open', /function fold\( panel \)/.test( script ) && /appendChild\( panel \);\s*fold\( panel \);/.test( script ) && script.includes( "drop.setAttribute( 'name', 'sffilters-drop-' + number );" ) );
 	check( 'drawer: the panel is a list again when it goes back into the page', /unfold\( panel \);\s*if \( slot && slot\.isConnected \)/.test( script ) );
 	check( 'drawer: the rows are built again after the list is filtered', /panel\.replaceWith\( fresh \);\s*if \( drawer && drawer\.contains\( fresh \) \) \{\s*fold\( fresh \);/.test( script ) );

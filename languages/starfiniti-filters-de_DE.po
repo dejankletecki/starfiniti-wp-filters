@@ -1,0 +1,278 @@
+# German translation of Starfiniti Filters.
+# Compile with `npm run i18n`.
+msgid ""
+msgstr ""
+"Project-Id-Version: Starfiniti Filters\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. translators: 1: lowest price, 2: highest price.
+msgctxt "price range"
+msgid "%1$s – %2$s"
+msgstr "%1$s – %2$s"
+
+#. translators: %s: lowest price.
+msgid "From %s"
+msgstr "Ab %s"
+
+#. translators: %s: highest price.
+msgid "Up to %s"
+msgstr "Bis %s"
+
+msgid "Filters"
+msgstr "Filter"
+
+msgid "Close filters"
+msgstr "Filter schließen"
+
+msgid "Load more"
+msgstr "Mehr laden"
+
+#. translators: %s: selected filter value, for example a brand name.
+msgid "Remove filter: %s"
+msgstr "Filter entfernen: %s"
+
+msgid "Selected filters"
+msgstr "Ausgewählte Filter"
+
+msgid "Clear all"
+msgstr "Alle zurücksetzen"
+
+#. translators: %s: number of products.
+msgid "Show %s product"
+msgid_plural "Show %s products"
+msgstr[0] "%s Produkt anzeigen"
+msgstr[1] "%s Produkte anzeigen"
+
+msgid "Product filters"
+msgstr "Produktfilter"
+
+msgid "Apply filters"
+msgstr "Filter anwenden"
+
+msgid "Lowest price"
+msgstr "Niedrigster Preis"
+
+msgid "Highest price"
+msgstr "Höchster Preis"
+
+msgid "Price"
+msgstr "Preis"
+
+msgid "Availability"
+msgstr "Verfügbarkeit"
+
+msgid "On sale"
+msgstr "Im Angebot"
+
+msgid "Categories"
+msgstr "Kategorien"
+
+msgid "Tags"
+msgstr "Schlagwörter"
+
+msgid "Brands"
+msgstr "Marken"
+
+msgid "Starfiniti Filters"
+msgstr "Starfiniti Filters"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Filter added. Save changes to apply."
+msgstr "Filter hinzugefügt. Speichern Sie die Änderungen, damit er wirksam wird."
+
+msgid "Filter removed. Save changes to apply."
+msgstr "Filter entfernt. Speichern Sie die Änderungen, damit das wirksam wird."
+
+msgid "Filter moved. Save changes to apply."
+msgstr "Filter verschoben. Speichern Sie die Änderungen, damit das wirksam wird."
+
+msgid "You are not allowed to change these settings."
+msgstr "Sie dürfen diese Einstellungen nicht ändern."
+
+#. translators: %s: attribute name, for example Color.
+msgid "%s (attribute)"
+msgstr "%s (Attribut)"
+
+msgid "Page links"
+msgstr "Seitenlinks"
+
+msgid "\"Load more\" button"
+msgstr "Schaltfläche „Mehr laden“"
+
+msgid "Infinite scroll"
+msgstr "Endloses Scrollen"
+
+msgid "Settings saved."
+msgstr "Einstellungen gespeichert."
+
+msgid "View shop"
+msgstr "Shop ansehen"
+
+#. translators: %s: the [sffilters] shortcode.
+msgid "The panel shows these filters in this order. Place the panel with the %s shortcode, for example in a sidebar widget or in the shop template of your page builder."
+msgstr "Das Panel zeigt diese Filter in dieser Reihenfolge. Platzieren Sie es mit dem Shortcode %s, zum Beispiel in einem Widget der Seitenleiste oder in der Shop-Vorlage Ihres Page Builders."
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Title in the panel"
+msgstr "Titel im Panel"
+
+msgid "URL parameter"
+msgstr "URL-Parameter"
+
+msgid "Order"
+msgstr "Reihenfolge"
+
+msgid "No filters yet. Add one below."
+msgstr "Noch keine Filter. Fügen Sie unten einen hinzu."
+
+msgid "Add a filter"
+msgstr "Filter hinzufügen"
+
+msgid "Choose what to filter by"
+msgstr "Wählen Sie, wonach gefiltert wird"
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Product list"
+msgstr "Produktliste"
+
+msgid "How more products load"
+msgstr "Wie weitere Produkte geladen werden"
+
+#. translators: %s: filter name, for example Categories.
+msgid "Title of the %s filter"
+msgstr "Titel des Filters %s"
+
+#. translators: %s: filter name, for example Categories.
+msgid "Move %s up"
+msgstr "%s nach oben verschieben"
+
+#. translators: %s: filter name, for example Categories.
+msgid "Move %s down"
+msgstr "%s nach unten verschieben"
+
+#. translators: %s: filter name, for example Categories.
+msgid "Remove %s"
+msgstr "%s entfernen"
+
+msgid "Attribute"
+msgstr "Attribut"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "Product filters of the WooCommerce shop."
+msgstr "Produktfilter des WooCommerce-Shops."
+
+msgid "Get filter settings"
+msgstr "Filtereinstellungen lesen"
+
+msgid "Update filter settings"
+msgstr "Filtereinstellungen ändern"
+
+msgid "Pagination must be pages, more or infinite."
+msgstr "Die Seitennavigation muss pages, more oder infinite sein."
+
+msgid "Filters must be a list."
+msgstr "Die Filter müssen eine Liste sein."
+
+msgid "Each filter must be an object with a source."
+msgstr "Jeder Filter muss ein Objekt mit einer Quelle sein."
+
+#. translators: %s: filter source, for example product_cat.
+msgid "The filter \"%s\" is listed twice."
+msgstr "Der Filter „%s“ ist doppelt aufgeführt."
+
+#. translators: %s: what was given as the filter source.
+msgid "\"%s\" is not a filter source."
+msgstr "„%s“ ist keine Filterquelle."
+
+msgid "All products"
+msgstr "Alle Produkte"
+
+msgid "Display"
+msgstr "Anzeige"
+
+#. translators: %s: filter name, for example Categories.
+msgid "Display of the %s filter"
+msgstr "Anzeige des Filters %s"
+
+msgid "Checkboxes"
+msgstr "Kontrollkästchen"
+
+msgid "Links to their own pages"
+msgstr "Links zu den eigenen Seiten"
+
+msgid "Product filters for the WooCommerce shop your theme already renders."
+msgstr "Produktfilter für den WooCommerce-Shop, den Ihr Theme bereits darstellt."
+
+msgid "The update was not installed, because its checksum could not be read from GitHub. Try again later."
+msgstr "Das Update wurde nicht installiert, weil seine Prüfsumme nicht von GitHub gelesen werden konnte. Versuchen Sie es später erneut."
+
+msgid "The update was not installed, because the downloaded file does not match its published checksum."
+msgstr "Das Update wurde nicht installiert, weil die heruntergeladene Datei nicht mit der veröffentlichten Prüfsumme übereinstimmt."
+
+msgid "See the release on GitHub for details."
+msgstr "Details finden Sie in der Veröffentlichung auf GitHub."
+
+#. translators: %s: filter title, for example Length.
+msgid "%s from"
+msgstr "%s von"
+
+#. translators: %s: filter title, for example Length.
+msgid "%s to"
+msgstr "%s bis"
+
+#. translators: 1: filter title, for example Length. 2: the chosen range, for example 30 cm – 120 cm.
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+#. translators: %s: name of the category one level up.
+msgid "Back to %s"
+msgstr "Zurück zu %s"
+
+msgid "Links, one level at a time"
+msgstr "Links, jeweils eine Ebene"
+
+msgid "Show from"
+msgstr "Anzeigen ab"
+
+#. translators: %s: filter name, for example Colour.
+msgid "Show the %s filter only when at least this percentage of the listed products has a value"
+msgstr "Den Filter %s nur anzeigen, wenn mindestens dieser Anteil der angezeigten Produkte einen Wert hat"
+
+#. translators: %s: name of a category that has subcategories.
+msgid "%s: subcategories"
+msgstr "%s: Unterkategorien"
+
+msgid "Slider and fields"
+msgstr "Schieberegler und Felder"
+
+msgid "Ready-made ranges"
+msgstr "Vorgegebene Bereiche"
+
+msgid "Swatches"
+msgstr "Farbfelder"
+
+#. translators: %s: number of further values of a filter.
+msgid "more (%s)"
+msgstr "mehr (%s)"
+
+msgid "less"
+msgstr "weniger"
+
+msgid "Show first"
+msgstr "Die ersten anzeigen"
+
+#. translators: %s: filter name, for example Colour.
+msgid "Show only this many values of the %s filter, the rest behind \"more\""
+msgstr "Nur so viele Werte des Filters %s anzeigen, die übrigen hinter „mehr“"
