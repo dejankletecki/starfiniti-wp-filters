@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.0
+
+- The page links under the products are now drawn by the plugin, the same in every store: a row of boxes with the page being viewed filled in, for the WooCommerce loop, the Breakdance post loop and Bricks. The font is the one of the page, the corners follow the buttons of the site, and the colour is the brand colour of the page builder. A store sets another colour with `--sffilters-page` (and `--sffilters-page-text`) on `:root` or on `.sffilters-results`. Before, each builder drew them its own way, and where a store had styled the page links of its old filter plugin, they came out as bare text.
+
 ## 1.8.0
 
 - Added swatches, a fourth way to show a taxonomy: checkboxes drawn as round chips with a colour or a picture each. The store gives the colour and the picture with the new `sffilters_swatch` filter.

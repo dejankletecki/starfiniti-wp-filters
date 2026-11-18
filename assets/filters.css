@@ -4,6 +4,8 @@
  * A store sets its own look with four custom properties, on `:root` or on `.sffilters-panel`:
  * `--sffilters-accent` (ticked checkboxes, the slider, the main button), `--sffilters-accent-text`
  * (the tick and the text of the main button), `--sffilters-border` (the checkbox outline) and `--sffilters-radius`.
+ * `--sffilters-page` and `--sffilters-page-text`, on `:root` or on `.sffilters-results`, colour the page links under
+ * the products when the brand colour of the page builder is not the one to use.
  *
  * Fixed sizes are in pixels and sizes that follow the text in em. None is in rem, because themes set the root
  * font size differently (Bricks uses 10px).
@@ -681,6 +683,107 @@
 }
 
 /*
+ * Page links under the product list. WooCommerce, the Breakdance post loop and Bricks each print their own
+ * markup and style it their own way, so the links are drawn here, the same in every store: a row of boxes,
+ * the page being viewed filled in.
+ *
+ * The look still belongs to the site. The font is the one of the page, the colour is `--sffilters-page` when
+ * the store sets it on `:root` or on `.sffilters-results`, then the accent of the panel, then the brand colour
+ * of the page builder, then a dark grey, and the corners follow the buttons of the site. The rules are marked important, because
+ * the builders write theirs per element, which no selector here could outweigh.
+ */
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) {
+	--sffilters-page-color: var(--sffilters-page, var(--sffilters-accent, var(--bde-brand-primary-color, var(--bricks-color-primary, var(--wp--preset--color--primary, #1a1a1a)))));
+	align-items: center !important;
+	border: 0 !important;
+	display: flex !important;
+	flex-flow: row wrap !important;
+	gap: 6px !important;
+	justify-content: center !important;
+	margin: 32px 0 0 !important;
+	padding: 0 !important;
+	width: 100%;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) ul {
+	align-items: center !important;
+	background: none !important;
+	border: 0 !important;
+	display: flex !important;
+	flex-flow: row wrap !important;
+	gap: 6px !important;
+	height: auto !important;
+	justify-content: center !important;
+	list-style: none !important;
+	margin: 0 !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) li {
+	background: none !important;
+	border: 0 !important;
+	display: block !important;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) .bde-posts-prev-next-link {
+	display: flex !important;
+	margin: 0 !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) .bde-posts-prev-next-link:empty {
+	display: none !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > a, li > span, .bde-posts-prev-next-link > a) {
+	align-items: center !important;
+	background: transparent !important;
+	border: 1px solid rgba(128, 128, 128, 0.35) !important;
+	border-radius: var(--sffilters-radius, var(--bde-button-border-radius, var(--bricks-border-radius, 4px))) !important;
+	box-shadow: none !important;
+	box-sizing: border-box !important;
+	color: inherit !important;
+	display: inline-flex !important;
+	font-family: inherit !important;
+	font-size: inherit !important;
+	font-weight: 600 !important;
+	height: 40px !important;
+	justify-content: center !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	min-width: 40px !important;
+	padding: 0 12px !important;
+	text-decoration: none !important;
+	transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > a, .bde-posts-prev-next-link > a):is(:hover, :focus-visible) {
+	border-color: var(--sffilters-page-color) !important;
+	color: var(--sffilters-page-color) !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > span.current, li > a.is-active) {
+	background: var(--sffilters-page-color) !important;
+	border-color: var(--sffilters-page-color) !important;
+	color: var(--sffilters-page-text, var(--sffilters-accent-text, #fff)) !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > span.dots, .bde-posts-navigation-numbers--ellipses > span) {
+	border-color: transparent !important;
+	min-width: 20px !important;
+	padding: 0 !important;
+}
+
+.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > a, .bde-posts-prev-next-link > a):focus-visible {
+	outline: 2px solid var(--sffilters-page-color);
+	outline-offset: 2px;
+}
+
+/*
  * The Breakdance shop element lays the result count, the sorting and the products out itself.
  * The wrapper around them takes that layout over, so they stay where the store put them.
  */
@@ -704,6 +807,7 @@
 	.sffilters-results,
 	.sffilters-branch__toggle::before,
 	.sffilters-swatch__chip,
+	.sffilters-results :is(.woocommerce-pagination, .bde-posts-pagination, .bricks-pagination):not(.sffilters-hidden) :is(li > a, li > span, .bde-posts-prev-next-link > a),
 	.sffilters-option__control input[type="radio"],
 	.sffilters-option__control input[type="radio"]::before,
 	.sffilters-option__control input[type="checkbox"],

@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.8.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.9.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -22,6 +22,7 @@ Working now:
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
 - Checkboxes drawn the same in every browser, in the accent colour of the store
 - Works with the Breakdance "Shop Page" element
+- Page links under the products drawn the same in every store, in the colours and the font of the site
 - Works with LiteSpeed Cache: its CSS and JS optimization leaves the panel alone
 - Works with product archives a page builder draws itself from the main query: the Breakdance post loop and a Bricks query loop set as the main query
 - A settings page under WooCommerce > Filters, the same settings through WP-CLI and the WordPress Abilities API
@@ -82,6 +83,15 @@ The panel takes its fonts and colours from the theme. Four custom properties set
 	--sffilters-accent-text: #fff;    /* The tick and the text of the main button. */
 	--sffilters-border: #767676;      /* The checkbox outline. */
 	--sffilters-radius: 3px;          /* Buttons. */
+}
+```
+
+The page links under the products are drawn by the plugin, the same in every store, in the font of the page and the brand colour of the page builder (Breakdance, Bricks or the theme palette). To use another colour:
+
+```css
+.sffilters-results {
+	--sffilters-page: #26261f;        /* The page being viewed, and the outline of a page link under the pointer. */
+	--sffilters-page-text: #fff;      /* The number on the page being viewed. */
 }
 ```
 
