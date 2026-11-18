@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.11.0
+
+- In the drawer on small screens every filter is now a row that opens it, for the vertical panel too: one filter is open at a time and a row says how many values are chosen. Until now only the horizontal panel was laid out that way, and the vertical one showed all its filters open, one under the other.
+- The "Filters" button on small screens is now a full-width button in the accent colour with an icon, the same in every store. `--sffilters-button` and `--sffilters-button-text` set another colour.
+- The bar with that button takes the full width of its row, also where the page builder puts it in a row of its own.
+
 ## 1.10.2
 
 - Fixed the horizontal panel in the drawer on small screens: an open filter with a long value was wider than the drawer, so the counts and the arrows of the rows were pushed out of sight.

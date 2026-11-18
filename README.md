@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.10.2 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.11.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -13,7 +13,7 @@ Working now:
 - Counts next to every choice, recalculated for the current selection
 - Products, result count, pagination, sorting and panel swap without a page reload, with working back and forward buttons
 - Selected filters above the products, each with a remove button, and "Clear all"
-- Mobile panel: a "Filters" button opens the panel as a drawer on screens up to 768px, or up to the width the store sets
+- Mobile panel: a full-width "Filters" button opens the panel as a drawer on screens up to 768px, or up to the width the store sets. In the drawer every filter is a row that opens it
 - Price slider with two handles
 - Price as ready-made ranges to pick one from, worked out from the prices of the listed products
 - Swatches: a taxonomy as round chips with a colour or a picture each, for example flower colours
@@ -56,7 +56,7 @@ The panel comes in two layouts. `[sffilters]` is the vertical panel, for a sideb
 add_action( 'woocommerce_before_shop_loop', static fn() => print do_shortcode( '[sffilters layout="horizontal"]' ), -2000 );
 ```
 
-On small screens both layouts open in the same drawer, where the filters are a list one under the other.
+On small screens both layouts open in the same drawer, where every filter is a row: a tap opens it, one at a time, and the row says how many values are chosen.
 
 A taxonomy filter shows its terms in one of four ways. **Checkboxes** filter the current list and keep the choice in the URL. On a category page they offer every other category the listed products are in, so the shopper can cross two categories. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on. **Links, one level at a time** does the same for a large category tree: the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up. Where the whole tree is shown, as checkboxes or as links, the subcategories are folded behind an arrow next to their category. A branch is open from the start when it holds a chosen value or the category being viewed.
 
@@ -102,6 +102,15 @@ The page links under the products are drawn by the plugin, the same in every sto
 .sffilters-results {
 	--sffilters-page: #26261f;        /* The page being viewed, and the outline of a page link under the pointer. */
 	--sffilters-page-text: #fff;      /* The number on the page being viewed. */
+}
+```
+
+The "Filters" button on small screens is drawn the same in every store too: full width, in the accent colour, with an icon. To use another colour:
+
+```css
+.sffilters-bar {
+	--sffilters-button: #26261f;      /* The button that opens the filters on a phone. */
+	--sffilters-button-text: #fff;    /* Its text and icon. */
 }
 ```
 

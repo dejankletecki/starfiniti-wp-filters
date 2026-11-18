@@ -243,6 +243,16 @@ async function propertyChecks( properties ) {
 	check( 'breakdance: labels keep their layout inside the shop element of the builder', /\.breakdance-woocommerce label\.sffilters-option__control \{[^}]*display: flex;[^}]*line-height: inherit;/.test( styles ) );
 	check( 'breakdance: checkboxes keep their look there, swatches stay hidden boxes', /\.breakdance-woocommerce \.sffilters-option__control:not\(\.sffilters-swatch\) input\[type="checkbox"\]:checked \{\s*background: var\(--sffilters-accent/.test( styles ) );
 	check( 'horizontal: in the drawer an open filter is as wide as the drawer, not as its longest value', /\.sffilters-drawer \.sffilters-drop__body \{[^}]*position: static;\s*width: auto;/.test( styles ) );
+	const script = readFileSync( 'assets/filters.js', 'utf8' );
+
+	check( 'drawer: the script turns the filters of the vertical panel into rows that open', /function fold\( panel \)/.test( script ) && /appendChild\( panel \);\s*fold\( panel \);/.test( script ) && script.includes( "drop.setAttribute( 'name', 'sffilters-drop-' + number );" ) );
+	check( 'drawer: the panel is a list again when it goes back into the page', /unfold\( panel \);\s*if \( slot && slot\.isConnected \)/.test( script ) );
+	check( 'drawer: the rows are built again after the list is filtered', /panel\.replaceWith\( fresh \);\s*if \( drawer && drawer\.contains\( fresh \) \) \{\s*fold\( fresh \);/.test( script ) );
+	check( 'drawer: the rows are close together whatever gap the store gives its panel', /\.sffilters-drawer \.sffilters-panel--horizontal \{[^}]*gap: 8px;/.test( styles ) );
+	check( 'mobile: the "Filters" button is a full-width button in the accent colour', /\.sffilters-mobile \.sffilters-bar \.sffilters-toggle \{[^}]*background: var\(--sffilters-button-color\) !important;[^}]*min-height: 48px !important;[^}]*width: 100% !important;/.test( styles ) );
+	check( 'mobile: the button has an icon and the store can set its colour', /\.sffilters-toggle::before \{[^}]*mask: url\(/.test( styles ) && styles.includes( '--sffilters-button-color: var(--sffilters-button, var(--sffilters-accent,' ) );
+	check( 'mobile: the bar fills the row the page builder puts it in', /\.sffilters-mobile \.sffilters-bar \{[^}]*align-self: stretch;[^}]*flex-grow: 1;/.test( styles ) );
+
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

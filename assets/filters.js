@@ -235,6 +235,63 @@
 		return dialog;
 	}
 
+	// In the drawer every filter is a row that opens it. The horizontal panel comes that way from the server,
+	// the vertical one is given the same elements here, so the same styles apply to both.
+	function fold( panel ) {
+		if ( panel.classList.contains( 'sffilters-panel--horizontal' ) ) {
+			return;
+		}
+
+		var number = panel.getAttribute( 'data-sffilters-panel' );
+
+		panel.classList.add( 'sffilters-panel--horizontal' );
+		panel.setAttribute( 'data-sffilters-folded', '' );
+
+		panel.querySelectorAll( ':scope > fieldset.sffilters-filter' ).forEach( function ( group ) {
+			var title = group.querySelector( '.sffilters-filter__title' );
+			// A range is one choice, a list as many as are ticked.
+			var chosen = group.hasAttribute( 'data-sffilters-range' ) ? ( groupValue( group ) ? 1 : 0 ) : group.querySelectorAll( 'input:checked' ).length;
+			var drop = document.createElement( 'details' );
+			var toggle = document.createElement( 'summary' );
+			var body = document.createElement( 'div' );
+
+			drop.className = 'sffilters-drop' + ( chosen ? ' sffilters-drop--active' : '' );
+			drop.setAttribute( 'data-sffilters-branch', 'drop:' + group.getAttribute( 'data-sffilters-param' ) );
+			drop.setAttribute( 'name', 'sffilters-drop-' + number );
+			toggle.className = 'sffilters-drop__toggle';
+			toggle.textContent = title ? title.textContent : '';
+
+			if ( chosen ) {
+				var count = document.createElement( 'span' );
+
+				count.className = 'sffilters-drop__count';
+				count.textContent = chosen;
+				toggle.appendChild( document.createTextNode( ' ' ) );
+				toggle.appendChild( count );
+			}
+
+			body.className = 'sffilters-drop__body';
+			group.replaceWith( drop );
+			body.appendChild( group );
+			drop.appendChild( toggle );
+			drop.appendChild( body );
+		} );
+	}
+
+	// Back in the page the vertical panel is the list it was.
+	function unfold( panel ) {
+		if ( ! panel.hasAttribute( 'data-sffilters-folded' ) ) {
+			return;
+		}
+
+		panel.querySelectorAll( ':scope > .sffilters-drop' ).forEach( function ( drop ) {
+			drop.replaceWith( drop.querySelector( '.sffilters-filter' ) );
+		} );
+
+		panel.classList.remove( 'sffilters-panel--horizontal' );
+		panel.removeAttribute( 'data-sffilters-folded' );
+	}
+
 	// Safe to call twice: the second call finds the panel back in its place.
 	function closeDrawer() {
 		var panel = drawer ? drawer.querySelector( PANEL ) : null;
@@ -247,6 +304,8 @@
 		if ( ! panel ) {
 			return;
 		}
+
+		unfold( panel );
 
 		if ( slot && slot.isConnected ) {
 			slot.replaceWith( panel );
@@ -280,6 +339,7 @@
 		slot = document.createComment( 'sffilters-panel' );
 		panel.parentNode.insertBefore( slot, panel );
 		drawer.querySelector( '.sffilters-drawer__body' ).appendChild( panel );
+		fold( panel );
 		syncDrawer();
 		document.documentElement.classList.add( 'sffilters-open' );
 		drawer.showModal();
@@ -530,6 +590,10 @@
 
 			fresh = document.importNode( fresh, true );
 			panel.replaceWith( fresh );
+
+			if ( drawer && drawer.contains( fresh ) ) {
+				fold( fresh );
+			}
 
 			fresh.querySelectorAll( '[data-sffilters-branch]' ).forEach( function ( branch ) {
 				if ( open[ branchKey( branch ) ] ) {

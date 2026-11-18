@@ -6,6 +6,8 @@
  * (the tick and the text of the main button), `--sffilters-border` (the checkbox outline) and `--sffilters-radius`.
  * `--sffilters-page` and `--sffilters-page-text`, on `:root` or on `.sffilters-results`, colour the page links under
  * the products when the brand colour of the page builder is not the one to use.
+ * `--sffilters-button` and `--sffilters-button-text`, on `:root` or on `.sffilters-bar`, do the same for the
+ * "Filters" button on small screens.
  *
  * Fixed sizes are in pixels and sizes that follow the text in em. None is in rem, because themes set the root
  * font size differently (Bricks uses 10px).
@@ -654,14 +656,72 @@
 
 /* The script sets this class below the width where the panel becomes a drawer (768px unless the store changes it). */
 
+/* The bar takes the width it is given, also as an item of a row or of a centred column of the page builder. */
+
 .sffilters-mobile .sffilters-bar {
+	align-self: stretch;
 	display: flex;
+	flex-grow: 1;
 }
 
+/*
+ * The button that opens the drawer is the one thing a shopper on a phone has to find, so it is a full-width
+ * button in the accent colour with an icon, the same in every store. The rules are marked important, because
+ * themes and page builders style every `.button` their own way. The font stays the one of the page.
+ */
+
 .sffilters-mobile .sffilters-bar .sffilters-toggle {
-	align-items: center;
-	display: inline-flex;
-	gap: 0.4em;
+	--sffilters-button-color: var(--sffilters-button, var(--sffilters-accent, var(--bde-brand-primary-color, var(--bricks-color-primary, var(--wp--preset--color--primary, #1a1a1a)))));
+	--sffilters-button-ink: var(--sffilters-button-text, var(--sffilters-accent-text, #fff));
+	align-items: center !important;
+	background: var(--sffilters-button-color) !important;
+	border: 1px solid var(--sffilters-button-color) !important;
+	border-radius: var(--sffilters-radius, var(--bde-button-border-radius, var(--bricks-border-radius, 4px))) !important;
+	box-shadow: none !important;
+	box-sizing: border-box !important;
+	color: var(--sffilters-button-ink) !important;
+	cursor: pointer;
+	display: flex !important;
+	flex: 1 1 100%;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	gap: 0.5em;
+	height: auto !important;
+	justify-content: center !important;
+	line-height: 1.2 !important;
+	margin: 0 !important;
+	min-height: 48px !important;
+	opacity: 1 !important;
+	padding: 0 16px !important;
+	text-decoration: none !important;
+	width: 100% !important;
+}
+
+.sffilters-mobile .sffilters-bar .sffilters-toggle::before {
+	background: currentColor;
+	content: "";
+	flex: none;
+	height: 1.25em;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 6h9M18 6h3M3 12h3M12 12h9M3 18h7M16 18h5'/%3E%3Ccircle cx='15' cy='6' r='2.5'/%3E%3Ccircle cx='9' cy='12' r='2.5'/%3E%3Ccircle cx='13' cy='18' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 6h9M18 6h3M3 12h3M12 12h9M3 18h7M16 18h5'/%3E%3Ccircle cx='15' cy='6' r='2.5'/%3E%3Ccircle cx='9' cy='12' r='2.5'/%3E%3Ccircle cx='13' cy='18' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+	width: 1.25em;
+}
+
+.sffilters-mobile .sffilters-bar .sffilters-toggle:is(:hover, :active) {
+	filter: brightness(0.92);
+}
+
+.sffilters-mobile .sffilters-bar .sffilters-toggle:focus-visible {
+	outline: 2px solid var(--sffilters-button-color) !important;
+	outline-offset: 2px;
+}
+
+/* The number of filters in use is the button turned inside out. */
+
+.sffilters-mobile .sffilters-bar .sffilters-toggle .sffilters-toggle__count {
+	background: var(--sffilters-button-ink) !important;
+	border-color: var(--sffilters-button-ink) !important;
+	color: var(--sffilters-button-color) !important;
 }
 
 .sffilters-mobile .sffilters-panel {
@@ -683,8 +743,9 @@
 }
 
 /*
- * Horizontal panel: a row of buttons above the products, each opening its filter under it. On small screens
- * and in the drawer the same filters are a plain list, one under the other.
+ * Horizontal panel: a row of buttons above the products, each opening its filter under it. In the drawer on
+ * small screens the same buttons are rows, one under the other, and the script lays the vertical panel out
+ * the same way there.
  */
 
 .sffilters-panel--horizontal {
@@ -832,6 +893,7 @@
 .sffilters-drawer .sffilters-panel--horizontal {
 	align-items: stretch;
 	flex-flow: column nowrap;
+	gap: 8px;
 }
 
 .sffilters-drawer :is(.sffilters-drop__toggle, .sffilters-panel--horizontal > .sffilters-filter--toggle .sffilters-option__control) {
