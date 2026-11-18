@@ -469,6 +469,29 @@ $check( 'ranges: the chosen range is marked, the others stay', array( $second ) 
 $check( 'ranges: a range that is none of the ready-made ones stays listed and chosen', array( '1-2' ) === $chosen( $odd ), $odd );
 $check( 'ranges: the slider is the default', 'range' === ( ( new \Starfiniti\Filters\Filter\PriceFilter( 'price', 'Price' ) )->facet( $listed, array() )['kind'] ?? '' ) );
 
+// Swatches: checkboxes with a colour or a picture from the store, in one flat list.
+$paint = static function ( $swatch, $term, $slug ) {
+	if ( 'brand' === $slug && 'anker' === $term->slug ) {
+		$swatch['color'] = '#b3261e';
+	}
+
+	return $swatch;
+};
+
+add_filter( 'sffilters_swatch', $paint, 10, 3 );
+
+$swatched = new \Starfiniti\Filters\Filter\TaxonomyFilter( 'brand', 'Brands', 'product_brand', 'swatches', 0.0, 1 );
+$chips    = $swatched->facet( $listed, array( 'xiaomi' ) );
+$by_value = array_column( $chips['options'] ?? array(), null, 'value' );
+
+remove_filter( 'sffilters_swatch', $paint, 10 );
+
+$check( 'swatches: the filter offers swatches and carries its limit', 'swatches' === ( $chips['kind'] ?? '' ) && 1 === ( $chips['limit'] ?? 0 ), $chips );
+$check( 'swatches: the store gives a swatch its colour', '#b3261e' === ( $by_value['anker']['swatch']['color'] ?? '' ) && '' === ( $by_value['dyson']['swatch']['color'] ?? 'x' ), $by_value );
+$check( 'swatches: the chosen one is marked and counted like a checkbox', true === ( $by_value['xiaomi']['selected'] ?? false ) && ( $by_value['anker']['count'] ?? 0 ) === count( $expect( static fn( $p ) => in_array( 'anker', $slugs( $p, 'product_brand' ), true ) ) ), $by_value );
+$check( 'swatches: a swatch filters the list, a link does not', array( 'anker' ) === $swatched->parse( 'anker' ) && array() === ( new \Starfiniti\Filters\Filter\TaxonomyFilter( 'brand', 'Brands', 'product_brand', 'links' ) )->parse( 'anker' ) );
+$check( 'limit: checkboxes carry it too', 3 === ( ( new \Starfiniti\Filters\Filter\TaxonomyFilter( 'brand', 'Brands', 'product_brand', '', 0.0, 3 ) )->facet( $listed, array() )['limit'] ?? 0 ) );
+
 $stock = $flatten( $facet( 'stock', array( 'sf_sale' => '1' ) )['options'] ?? array() );
 $check( 'counts: stock of products on sale', ( $stock['instock'] ?? 0 ) === count( $expect( static fn( $p ) => $p->is_on_sale() && 'instock' === $p->get_stock_status() ) ), $stock );
 
@@ -809,6 +832,34 @@ $check( 'settings: a taxonomy can be shown one level at a time', 'level' === ( $
 
 $export = \Starfiniti\Filters\Settings::export();
 $ranged = \Starfiniti\Filters\Settings::filters();
+\Starfiniti\Filters\Settings::save(
+	array(
+		'filters' => array(
+			array(
+				'source'  => 'product_brand',
+				'display' => 'swatches',
+				'share'   => 0.5,
+				'limit'   => 6,
+			),
+			array(
+				'source'  => 'product_cat',
+				'display' => 'links',
+				'share'   => 0.5,
+				'limit'   => 6,
+			),
+			array(
+				'source' => 'product_tag',
+				'limit'  => 5000,
+			),
+		),
+	)
+);
+
+$limited = \Starfiniti\Filters\Settings::export()['filters'];
+$check( 'settings: swatches keep the share and the limit', 'swatches' === ( $limited[0]['display'] ?? '' ) && 0.5 === ( $limited[0]['share'] ?? 0 ) && 6 === ( $limited[0]['limit'] ?? 0 ), $limited );
+$check( 'settings: links take neither a share nor a limit', 'links' === ( $limited[1]['display'] ?? '' ) && 0.0 === ( $limited[1]['share'] ?? 1 ) && 0 === ( $limited[1]['limit'] ?? 1 ), $limited );
+$check( 'settings: the limit of a list is at most 100', 100 === ( $limited[2]['limit'] ?? 0 ), $limited );
+
 $check( 'settings: only the price filter can offer ready-made ranges', 'ranges' === ( $export['filters'][0]['display'] ?? '' ) && 'checkboxes' === ( $export['filters'][1]['display'] ?? '' ), $export['filters'] );
 $check( 'settings: a price filter saved with ranges offers them', 'choices' === ( reset( $ranged )->facet( $listed, array() )['kind'] ?? '' ) );
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.8.0
+
+- Added swatches, a fourth way to show a taxonomy: checkboxes drawn as round chips with a colour or a picture each. The store gives the colour and the picture with the new `sffilters_swatch` filter.
+- A filter with checkboxes or swatches can fold its values after the first few behind "more (N)": set "Show first" on the settings page, or run `wp sffilters limit <slug> <number>`.
+
 ## 1.7.1
 
 - Works with the CSS and JS optimization of LiteSpeed Cache out of the box. With "Unique CSS" or Guest optimization switched on, the panel could be drawn without its styles, and with delayed JavaScript the first click on a filter was lost. The stylesheet and the script of the panel are now kept out of that optimization.

@@ -65,11 +65,12 @@ final class Cli {
 				'label'    => '' !== $filter['label'] ? $filter['label'] : $filter['default_label'],
 				'display'  => $filter['display'],
 				'share'    => $filter['share'] > 0 ? $filter['share'] : '',
+				'limit'    => $filter['limit'] > 0 ? $filter['limit'] : '',
 				'param'    => $filter['param'],
 			);
 		}
 
-		Utils\format_items( $assoc_args['format'] ?? 'table', $rows, array( 'position', 'slug', 'source', 'label', 'display', 'share', 'param' ) );
+		Utils\format_items( $assoc_args['format'] ?? 'table', $rows, array( 'position', 'slug', 'source', 'label', 'display', 'share', 'limit', 'param' ) );
 	}
 
 	/**
@@ -122,6 +123,7 @@ final class Cli {
 	 * [--display=<display>]
 	 * : For taxonomies. With `links` each term leads to its own page, for example the category page. With `level` the
 	 * panel lists one level at a time: the subcategories of the page being viewed, or the categories beside it.
+	 * With `swatches` each term is a checkbox drawn as a colour or a picture, see the `sffilters_swatch` filter.
 	 * For the price filter, `ranges` offers ready-made ranges and no slider.
 	 * ---
 	 * default: checkboxes
@@ -129,9 +131,13 @@ final class Cli {
 	 *   - checkboxes
 	 *   - links
 	 *   - level
+	 *   - swatches
 	 *   - slider
 	 *   - ranges
 	 * ---
+	 *
+	 * [--limit=<number>]
+	 * : For taxonomies shown as checkboxes or swatches. Show this many values, the rest behind "more". Defaults to all.
 	 *
 	 * [--share=<share>]
 	 * : For taxonomies shown as checkboxes. Show the filter only when at least this share of the listed products
@@ -156,6 +162,7 @@ final class Cli {
 			'slug'    => (string) ( $assoc_args['slug'] ?? '' ),
 			'display' => (string) ( $assoc_args['display'] ?? '' ),
 			'share'   => $assoc_args['share'] ?? 0,
+			'limit'   => $assoc_args['limit'] ?? 0,
 		);
 		$place   = isset( $assoc_args['position'] ) ? max( 1, (int) $assoc_args['position'] ) : count( $filters ) + 1;
 
@@ -247,12 +254,14 @@ final class Cli {
 	 * <display>
 	 * : With `links` each term leads to its own page, for example the category page. With `level` the panel lists
 	 * one level at a time: the subcategories of the page being viewed, or the categories beside it.
+	 * With `swatches` each term is a checkbox drawn as a colour or a picture.
 	 * The price filter takes `slider` or `ranges`: ready-made ranges to pick one from.
 	 * ---
 	 * options:
 	 *   - checkboxes
 	 *   - links
 	 *   - level
+	 *   - swatches
 	 *   - slider
 	 *   - ranges
 	 * ---
@@ -280,6 +289,37 @@ final class Cli {
 	}
 
 	/**
+	 * Sets how many values a taxonomy filter shows before the rest goes behind "more".
+	 *
+	 * ## OPTIONS
+	 *
+	 * <slug>
+	 * : Slug of the filter, see `wp sffilters list`.
+	 *
+	 * <number>
+	 * : Number of values to show, for example 6. 0 shows all.
+	 *
+	 * @param array $args Positional arguments.
+	 */
+	public function limit( array $args ): void {
+		$filters = Settings::definitions();
+		$index   = $this->find( $filters, $args[0] );
+
+		if ( 'taxonomy' !== $filters[ $index ]['source'] || in_array( $filters[ $index ]['display'] ?? '', Settings::LINKS, true ) ) {
+			WP_CLI::error( 'Only a taxonomy filter with checkboxes or swatches can fold its values.' );
+		}
+
+		if ( ! ctype_digit( (string) $args[1] ) ) {
+			WP_CLI::error( 'The limit is a whole number, 0 for all values.' );
+		}
+
+		$filters[ $index ]['limit'] = (int) $args[1];
+
+		$this->save( array( 'filters' => $filters ) );
+		WP_CLI::success( sprintf( 'The filter "%s" now shows %s.', $args[0], 0 === (int) $args[1] ? 'all its values' : 'its first ' . (int) $args[1] . ' values' ) );
+	}
+
+	/**
 	 * Sets when a taxonomy filter with checkboxes shows.
 	 *
 	 * ## OPTIONS
@@ -297,8 +337,8 @@ final class Cli {
 		$filters = Settings::definitions();
 		$index   = $this->find( $filters, $args[0] );
 
-		if ( 'taxonomy' !== $filters[ $index ]['source'] || isset( $filters[ $index ]['display'] ) ) {
-			WP_CLI::error( 'Only a taxonomy filter with checkboxes can depend on the listed products.' );
+		if ( 'taxonomy' !== $filters[ $index ]['source'] || in_array( $filters[ $index ]['display'] ?? '', Settings::LINKS, true ) ) {
+			WP_CLI::error( 'Only a taxonomy filter with checkboxes or swatches can depend on the listed products.' );
 		}
 
 		if ( ! is_numeric( $args[1] ) || (float) $args[1] < 0 || (float) $args[1] > 1 ) {

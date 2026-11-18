@@ -77,8 +77,47 @@ add_filter(
  * Two more hooks a store may add, switched on from the address for the checks of the shop pages:
  * `sffilters_test_share` adds a tag filter that shows from that share of the listed products (0 for always),
  * `sffilters_test_facet` leaves "Out of stock" out of the availability filter,
- * `sffilters_test_ranges` shows the price filter as ready-made ranges.
+ * `sffilters_test_ranges` shows the price filter as ready-made ranges,
+ * `sffilters_test_swatches` shows the brands as swatches, the first one and the rest behind "more".
  */
+add_filter(
+	'sffilters_filter_definitions',
+	static function ( $definitions ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper, reads no value.
+		foreach ( isset( $_GET['sffilters_test_swatches'] ) && is_array( $definitions ) ? array_keys( $definitions ) : array() as $index ) {
+			if ( 'product_brand' === ( $definitions[ $index ]['taxonomy'] ?? '' ) ) {
+				$definitions[ $index ]['display'] = 'swatches';
+				$definitions[ $index ]['limit']   = 1;
+			}
+		}
+
+		return $definitions;
+	}
+);
+
+add_filter(
+	'sffilters_swatch',
+	static function ( $swatch, $term ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper, reads no value.
+		if ( ! isset( $_GET['sffilters_test_swatches'] ) || ! is_array( $swatch ) ) {
+			return $swatch;
+		}
+
+		if ( 'anker' === $term->slug ) {
+			$swatch['color'] = '#b3261e';
+		}
+
+		// An address with the characters that would end a CSS url().
+		if ( 'dyson' === $term->slug ) {
+			$swatch['image'] = 'https://example.test/rose (1).jpg';
+		}
+
+		return $swatch;
+	},
+	10,
+	2
+);
+
 add_filter(
 	'sffilters_filter_definitions',
 	static function ( $definitions ) {

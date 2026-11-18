@@ -330,8 +330,8 @@ final class Panel {
 			);
 		}
 
-		if ( 'options' === $kind ) {
-			$body = $this->options( $param . '[]', $facet['options'] );
+		if ( 'options' === $kind || 'swatches' === $kind ) {
+			$body = $this->listing( $param, $facet, 'swatches' === $kind );
 		} elseif ( 'choices' === $kind ) {
 			$body = $this->choices( $param, $facet['options'] );
 		} elseif ( 'links' === $kind ) {
@@ -354,6 +354,65 @@ final class Panel {
 			esc_html( $filter->label() ),
 			$body
 		);
+	}
+
+	/**
+	 * Renders the values of a filter that narrows the list, as checkboxes or as swatches. With a limit, the
+	 * values after it fold away behind "more". It is a `details` element, so it opens without the script too,
+	 * and it starts open when it holds a chosen value.
+	 *
+	 * @param string $param    URL parameter of the filter.
+	 * @param array  $facet    What the filter offers: `options` and, when set, `limit`.
+	 * @param bool   $swatches Whether the values are drawn as swatches.
+	 */
+	private function listing( string $param, array $facet, bool $swatches ): string {
+		$name    = $param . '[]';
+		$options = array_values( (array) $facet['options'] );
+		$limit   = (int) ( $facet['limit'] ?? 0 );
+		$draw    = fn( array $items ): string => $swatches ? $this->swatches( $name, $items ) : $this->options( $name, $items );
+
+		// One value alone behind "more" would save no room.
+		if ( $limit < 1 || count( $options ) < $limit + 2 ) {
+			return $draw( $options );
+		}
+
+		$rest = array_slice( $options, $limit );
+
+		return $draw( array_slice( $options, 0, $limit ) ) . sprintf(
+			'<details class="sffilters-rest" data-sffilters-branch="+"%1$s><summary class="sffilters-rest__toggle"><span class="sffilters-rest__more">%2$s</span><span class="sffilters-rest__less">%3$s</span></summary>%4$s</details>',
+			self::holds( $rest, 'selected' ) ? ' open' : '',
+			/* translators: %s: number of further values of a filter. */
+			esc_html( sprintf( __( 'more (%s)', 'starfiniti-filters' ), number_format_i18n( count( $rest ) ) ) ),
+			esc_html__( 'less', 'starfiniti-filters' ),
+			$draw( $rest )
+		);
+	}
+
+	/**
+	 * Renders a list of swatches: checkboxes drawn as a colour or a picture with the name under it.
+	 */
+	private function swatches( string $name, array $options ): string {
+		$items = '';
+
+		foreach ( $options as $option ) {
+			$swatch = (array) ( $option['swatch'] ?? array() );
+			$color  = (string) sanitize_hex_color( (string) ( $swatch['color'] ?? '' ) );
+			// The address goes into a CSS url(), so the characters that would end it are encoded.
+			$image = str_replace( array( "'", '"', '(', ')', '\\', ' ' ), array( '%27', '%22', '%28', '%29', '%5C', '%20' ), esc_url_raw( (string) ( $swatch['image'] ?? '' ) ) );
+			$style = ( '' !== $color ? 'background-color:' . $color . ';' : '' ) . ( '' !== $image ? "background-image:url('" . $image . "');" : '' );
+
+			$items .= sprintf(
+				'<li class="sffilters-option"><label class="sffilters-option__control sffilters-swatch"><input type="checkbox" name="%1$s" value="%2$s"%3$s> <span class="sffilters-swatch__chip"%4$s></span> <span class="sffilters-option__label">%5$s</span> <span class="sffilters-option__count">%6$s</span></label></li>',
+				esc_attr( $name ),
+				esc_attr( (string) $option['value'] ),
+				checked( (bool) $option['selected'], true, false ),
+				'' !== $style ? ' style="' . esc_attr( $style ) . '"' : '',
+				esc_html( (string) $option['label'] ),
+				esc_html( number_format_i18n( (int) $option['count'] ) )
+			);
+		}
+
+		return '<ul class="sffilters-options sffilters-swatches">' . $items . '</ul>';
 	}
 
 	/**

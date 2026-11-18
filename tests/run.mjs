@@ -201,6 +201,22 @@ async function propertyChecks( properties ) {
 	check( 'ranges: radio buttons are drawn round and sit on the first line', /input\[type="radio"\] \{[^}]*border-radius: 50%;[^}]*margin-top: calc\(\(1lh - 1\.25em\) \/ 2\);/.test( styles ) );
 	check( 'ranges: choosing the chosen range again gives it up', /input\[type="radio"\]\[data-sffilters-on\]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) );
 
+	// Swatches, and a long list folded behind "more". The demo store has three brands.
+	const swatched = await page( '/shop/?sffilters_test_swatches=1' );
+	const chosen = await page( '/shop/?sffilters_test_swatches=1&sf_brand=xiaomi' );
+	const chip = ( html, value ) => html.match( new RegExp( `<input type="checkbox" name="sf_brand\\[\\]" value="${ value }"[^>]*> <span class="sffilters-swatch__chip"([^>]*)>` ) )?.[ 1 ] ?? null;
+	const rest = ( html ) => html.match( /<details class="sffilters-rest" data-sffilters-branch="\+"[^>]*>/ )?.[ 0 ] ?? '';
+
+	check( 'swatches: the brands are drawn as swatches', swatched.html.includes( 'class="sffilters-options sffilters-swatches"' ) && swatched.html.includes( 'sffilters-filter--swatches' ) );
+	check( 'swatches: a swatch takes the colour the store gives it', chip( swatched.html, 'anker' ) === ' style="background-color:#b3261e;"', chip( swatched.html, 'anker' ) );
+	check( 'swatches: the address of a picture cannot end the CSS it sits in', chip( swatched.html, 'dyson' ) === ' style="background-image:url(&#039;https://example.test/rose%20%281%29.jpg&#039;);"', chip( swatched.html, 'dyson' ) );
+	check( 'swatches: a swatch without a colour or a picture has no style', chip( swatched.html, 'xiaomi' ) === '', chip( swatched.html, 'xiaomi' ) );
+	check( 'swatches: choosing one narrows the list', total( chosen.html ) > 0 && total( chosen.html ) < total( shop.html ) && /value="xiaomi" checked/.test( chosen.html ), total( chosen.html ) );
+	check( 'limit: the values after the limit fold behind "more"', '' !== rest( swatched.html ) && ! / open/.test( rest( swatched.html ) ) && />more \(2\)<\/span><span class="sffilters-rest__less">less</.test( swatched.html ), rest( swatched.html ) );
+	check( 'limit: the fold is open when it holds a chosen value', / open/.test( rest( chosen.html ) ), rest( chosen.html ) );
+	check( 'limit: a list without a limit is not folded', ! shop.html.includes( 'sffilters-rest' ) );
+	check( 'swatches: the checkbox stays for the keyboard, the count for screen readers', /\.sffilters-swatch input\[type="checkbox"\],\s*\.sffilters-swatch \.sffilters-option__count \{[^}]*clip-path: inset\(50%\);/.test( readFileSync( 'assets/filters.css', 'utf8' ) ) );
+
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

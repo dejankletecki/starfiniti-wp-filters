@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Covers categories, tags, brands and product attributes.
  *
+ * Shown as checkboxes or as swatches, the terms filter the current list. A swatch is a checkbox drawn as a
+ * colour or a picture, which the store gives for each term with the `sffilters_swatch` filter.
+ *
  * Shown as checkboxes, the terms filter the current list. On a category page the checkboxes offer every other
  * category the listed products are in, so a shopper on "Mugs" can narrow the list to "Gifts". Shown as links,
  * each term leads to its own page,
@@ -36,21 +39,30 @@ final class TaxonomyFilter extends Filter {
 	 * @param string $slug     Filter slug.
 	 * @param string $label    Title in the panel.
 	 * @param string $taxonomy Taxonomy name.
-	 * @param string $display  Empty for checkboxes, `links` or `level` for links to the terms' own pages.
+	 * @param string $display  Empty for checkboxes, `swatches`, or `links` or `level` for links to the terms' own pages.
 	 * @param float  $share    Hide the filter when a smaller share of the listed products has a term.
+	 * @param int    $limit    Show this many terms, the rest behind "more". Zero shows all.
 	 */
 	public function __construct(
 		string $slug,
 		string $label,
 		private string $taxonomy,
 		private string $display = '',
-		private float $share = 0.0
+		private float $share = 0.0,
+		private int $limit = 0
 	) {
 		parent::__construct( $slug, $label );
 	}
 
+	/**
+	 * Tells whether the terms are links to their own pages, which read nothing from the URL.
+	 */
+	private function leads_away(): bool {
+		return in_array( $this->display, array( 'links', 'level' ), true );
+	}
+
 	public function parse( $raw ): array {
-		if ( '' !== $this->display ) {
+		if ( $this->leads_away() ) {
 			return array();
 		}
 
@@ -71,7 +83,7 @@ final class TaxonomyFilter extends Filter {
 	}
 
 	public function facet( string $ids_sql, array $values ): array {
-		if ( '' !== $this->display ) {
+		if ( $this->leads_away() ) {
 			return $this->links();
 		}
 
@@ -103,15 +115,53 @@ final class TaxonomyFilter extends Filter {
 				'selected' => in_array( $term->slug, $values, true ),
 				'parent'   => (int) $term->parent,
 			);
+
+			if ( 'swatches' === $this->display ) {
+				/**
+				 * Filters the colour and the picture of one swatch. A swatch with neither is drawn empty.
+				 *
+				 * @param array    $swatch `color` as a hex colour such as `#b3261e`, `image` as the address of a small picture.
+				 * @param \WP_Term $term   The term the swatch stands for.
+				 * @param string   $slug   Slug of the filter.
+				 */
+				$nodes[ $term->term_id ]['swatch'] = (array) apply_filters(
+					'sffilters_swatch',
+					array(
+						'color' => '',
+						'image' => '',
+					),
+					$term,
+					$this->slug
+				);
+			}
 		}
 
 		if ( array() === $nodes ) {
 			return array();
 		}
 
+		// Swatches sit side by side, so they are one flat list, whatever the taxonomy.
+		if ( 'swatches' === $this->display ) {
+			$flat = array();
+
+			foreach ( $nodes as $node ) {
+				unset( $node['parent'] );
+
+				$node['children'] = array();
+				$flat[]           = $node;
+			}
+
+			return array(
+				'kind'    => 'swatches',
+				'options' => $flat,
+				'limit'   => $this->limit,
+			);
+		}
+
 		return array(
 			'kind'    => 'options',
 			'options' => self::tree( $nodes, 0 ),
+			'limit'   => $this->limit,
 		);
 	}
 

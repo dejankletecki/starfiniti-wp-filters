@@ -260,3 +260,20 @@ msgstr "Klizač i polja"
 
 msgid "Ready-made ranges"
 msgstr "Gotovi rasponi"
+
+msgid "Swatches"
+msgstr "Uzorci"
+
+#. translators: %s: number of further values of a filter.
+msgid "more (%s)"
+msgstr "više (%s)"
+
+msgid "less"
+msgstr "manje"
+
+msgid "Show first"
+msgstr "Prikaži prvih"
+
+#. translators: %s: filter name, for example Colour.
+msgid "Show only this many values of the %s filter, the rest behind \"more\""
+msgstr "Prikaži samo toliko vrijednosti filtra %s, ostale iza »više«"

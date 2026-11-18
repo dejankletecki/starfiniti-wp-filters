@@ -29,6 +29,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * filters by a product property of the store (see Properties), an optional `label` and, for taxonomy
  * filters, `display` set to `links` or `level` when the terms lead to their own pages, or `share` (above 0,
  * up to 1) to show a checkbox filter only when at least that share of the listed products has a term.
+ * A taxonomy filter with `display` set to `swatches` filters the list like checkboxes and shows a colour or a
+ * picture for each term. A filter that filters the list also takes `limit`: the number of values shown before
+ * the rest goes behind "more".
  * The price filter takes `display` set to `ranges` to offer ready-made ranges and no slider.
  * When reading input, `source` may also name the taxonomy or the property directly, for example `pa_color`.
  */
@@ -40,9 +43,19 @@ final class Settings {
 
 	/**
 	 * How a taxonomy filter can show its terms besides checkboxes: `links` lists the whole tree as links to the
-	 * terms' own pages, `level` one level at a time.
+	 * terms' own pages, `level` one level at a time, `swatches` as checkboxes with a colour or a picture each.
 	 */
-	public const DISPLAYS = array( 'links', 'level' );
+	public const DISPLAYS = array( 'links', 'level', 'swatches' );
+
+	/**
+	 * The displays that lead to the terms' own pages. They read nothing from the URL.
+	 */
+	public const LINKS = array( 'links', 'level' );
+
+	/**
+	 * The most values a filter can show before "more".
+	 */
+	private const MAX_LIMIT = 100;
 
 	/**
 	 * How the price filter can show besides the slider with two fields: ready-made ranges to pick one from.
@@ -216,6 +229,7 @@ final class Settings {
 				'default_label' => self::default_label( $definition['source'], self::key( $definition ) ),
 				'display'       => 'taxonomy' === $definition['source'] ? ( $definition['display'] ?? 'checkboxes' ) : ( $definition['display'] ?? '' ),
 				'share'         => (float) ( $definition['share'] ?? 0 ),
+				'limit'         => (int) ( $definition['limit'] ?? 0 ),
 				'param'         => 'sf_' . $definition['slug'],
 			);
 		}
@@ -407,11 +421,17 @@ final class Settings {
 				$clean['display'] = self::text( $definition, 'display' );
 			}
 
-			// Links lead away from the list, so only a checkbox filter can depend on what the list holds.
-			$share = is_numeric( $definition['share'] ?? null ) ? (float) $definition['share'] : 0.0;
+			// Links lead away from the list, so only a filter that narrows it can depend on what the list holds.
+			$narrows = ! in_array( $clean['display'] ?? '', self::LINKS, true );
+			$share   = is_numeric( $definition['share'] ?? null ) ? (float) $definition['share'] : 0.0;
+			$limit   = is_numeric( $definition['limit'] ?? null ) ? (int) $definition['limit'] : 0;
 
-			if ( ! isset( $clean['display'] ) && $share > 0 && $share <= 1 ) {
+			if ( $narrows && $share > 0 && $share <= 1 ) {
 				$clean['share'] = round( $share, 2 );
+			}
+
+			if ( $narrows && $limit > 0 ) {
+				$clean['limit'] = min( self::MAX_LIMIT, $limit );
 			}
 		}
 
@@ -520,7 +540,7 @@ final class Settings {
 
 		switch ( $definition['source'] ) {
 			case 'taxonomy':
-				return new TaxonomyFilter( $slug, $label, $taxonomy, $definition['display'] ?? '', (float) ( $definition['share'] ?? 0.0 ) );
+				return new TaxonomyFilter( $slug, $label, $taxonomy, $definition['display'] ?? '', (float) ( $definition['share'] ?? 0.0 ), (int) ( $definition['limit'] ?? 0 ) );
 
 			case 'property':
 				$key      = $definition['property'];

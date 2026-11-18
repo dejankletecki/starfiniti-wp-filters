@@ -48,14 +48,20 @@ final class Abilities {
 				),
 				'display' => array(
 					'type'        => 'string',
-					'enum'        => array( 'checkboxes', 'links', 'level', 'slider', 'ranges', '' ),
-					'description' => 'For the price filter: slider shows a slider with two fields, ranges offers ready-made ranges to pick one from. For taxonomies. checkboxes filters the current list. links makes each term a link to its own page, for example the category page. level does the same one level at a time: the subcategories of the page being viewed, or the categories beside it.',
+					'enum'        => array( 'checkboxes', 'links', 'level', 'swatches', 'slider', 'ranges', '' ),
+					'description' => 'For the price filter: slider shows a slider with two fields, ranges offers ready-made ranges to pick one from. For taxonomies. checkboxes filters the current list. swatches does the same and draws each term as a colour or a picture. links makes each term a link to its own page, for example the category page. level does the same one level at a time: the subcategories of the page being viewed, or the categories beside it.',
 				),
 				'share'   => array(
 					'type'        => 'number',
 					'minimum'     => 0,
 					'maximum'     => 1,
 					'description' => 'For taxonomies shown as checkboxes. Show the filter only when at least this share of the listed products has a term, for example 0.9. 0 or left out shows it whenever a listed product has one.',
+				),
+				'limit'   => array(
+					'type'        => 'integer',
+					'minimum'     => 0,
+					'maximum'     => 100,
+					'description' => 'For taxonomies shown as checkboxes or swatches. Show this many values, the rest behind "more". 0 or left out shows all.',
 				),
 				'slug'    => array(
 					'type'        => 'string',

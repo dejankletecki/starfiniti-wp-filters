@@ -67,6 +67,18 @@
 				empty.value = '';
 				share.replaceWith( empty );
 			}
+
+			// So does the number of values shown before "more".
+			const limit = row.querySelector( '[data-sffilters-limit]' );
+
+			if ( limit ) {
+				const none = document.createElement( 'input' );
+
+				none.type = 'hidden';
+				none.name = limit.querySelector( 'input' ).name;
+				none.value = '';
+				limit.replaceWith( none );
+			}
 		}
 
 		row.querySelectorAll( '[aria-label]' ).forEach( function ( item ) {

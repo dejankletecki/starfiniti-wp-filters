@@ -173,6 +173,95 @@
 	font-weight: 600;
 }
 
+/*
+ * Swatches: the checkbox is there for the keyboard and for screen readers, the shopper sees a round chip with
+ * the colour or the picture the store gave it, and the name under it. A ring marks the chosen ones.
+ */
+
+.sffilters-swatches {
+	display: grid;
+	gap: 12px 8px;
+	grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+
+.sffilters-swatch {
+	align-items: center;
+	flex-direction: column;
+	gap: 6px;
+	padding: 4px 0;
+	position: relative;
+	text-align: center;
+}
+
+.sffilters-swatch input[type="checkbox"],
+.sffilters-swatch .sffilters-option__count {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+.sffilters-swatch__chip {
+	background: #fff center / cover no-repeat;
+	border: 1px solid var(--sffilters-border, #767676);
+	border-radius: 50%;
+	box-sizing: border-box;
+	flex: none;
+	height: 40px;
+	transition: box-shadow 0.12s;
+	width: 40px;
+}
+
+.sffilters-swatch:hover .sffilters-swatch__chip {
+	box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.18);
+}
+
+.sffilters-swatch input:checked + .sffilters-swatch__chip {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+}
+
+.sffilters-swatch input:focus-visible + .sffilters-swatch__chip {
+	outline: 2px solid var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	outline-offset: 5px;
+}
+
+.sffilters-swatch .sffilters-option__label {
+	flex: none;
+	font-size: 0.875em;
+	line-height: 1.3;
+}
+
+/* The values after the limit of a filter fold away behind "more", which then reads "less". */
+
+.sffilters-rest__toggle {
+	color: inherit;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 0.875em;
+	list-style: none;
+	margin: 4px 0;
+	text-decoration: underline;
+}
+
+.sffilters-rest__toggle::-webkit-details-marker {
+	display: none;
+}
+
+.sffilters-rest__toggle:focus-visible {
+	outline: 2px solid var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	outline-offset: 2px;
+}
+
+.sffilters-rest[open] > .sffilters-rest__toggle > .sffilters-rest__more,
+.sffilters-rest:not([open]) > .sffilters-rest__toggle > .sffilters-rest__less {
+	display: none;
+}
+
 /* Radio buttons are drawn the same way, round, with a dot in the accent colour. */
 
 .sffilters-option__control input[type="radio"] {
@@ -614,6 +703,7 @@
 @media (prefers-reduced-motion: reduce) {
 	.sffilters-results,
 	.sffilters-branch__toggle::before,
+	.sffilters-swatch__chip,
 	.sffilters-option__control input[type="radio"],
 	.sffilters-option__control input[type="radio"]::before,
 	.sffilters-option__control input[type="checkbox"],
