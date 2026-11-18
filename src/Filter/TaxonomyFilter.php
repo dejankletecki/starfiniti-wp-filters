@@ -26,6 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class TaxonomyFilter extends Filter {
 
 	/**
+	 * Parent of every term that has one, keyed by term ID. Read once, with one query.
+	 *
+	 * @var array<int, int>|null
+	 */
+	private ?array $parents = null;
+
+	/**
 	 * @param string $slug     Filter slug.
 	 * @param string $label    Title in the panel.
 	 * @param string $taxonomy Taxonomy name.
@@ -84,7 +91,7 @@ final class TaxonomyFilter extends Filter {
 		$nodes  = array();
 
 		// The category being viewed and the ones above it hold every listed product, so they are not offered.
-		foreach ( 0 !== $root ? array_merge( array( $root ), get_ancestors( $root, $this->taxonomy, 'taxonomy' ) ) : array() as $above ) {
+		foreach ( 0 !== $root ? $this->lineage( $root ) : array() as $above ) {
 			unset( $counts[ $above ] );
 		}
 
@@ -128,8 +135,14 @@ final class TaxonomyFilter extends Filter {
 
 		$counts = $this->counts( Query::ids_sql( $base ), is_taxonomy_hierarchical( $this->taxonomy ) );
 		$nodes  = array();
+		$listed = array_keys( $counts );
 
-		foreach ( $this->terms( array_keys( $counts ), array() ) as $term ) {
+		// One level at a time needs the terms of that level only, however large the tree is.
+		if ( 'level' === $this->display ) {
+			$listed = $this->on_level( $listed, $current );
+		}
+
+		foreach ( $this->terms( $listed, array() ) as $term ) {
 			$url = get_term_link( $term );
 
 			if ( is_wp_error( $url ) ) {
@@ -291,6 +304,8 @@ final class TaxonomyFilter extends Filter {
 	 *
 	 * In a hierarchical taxonomy a product in a child term also counts for every
 	 * ancestor, once. That needs the product IDs, so those rows are not grouped in SQL.
+	 * The ancestors come from the parents read with one query, so a shop with thousands
+	 * of categories does not look each one up.
 	 *
 	 * @return array<int, int>
 	 */
@@ -320,7 +335,7 @@ final class TaxonomyFilter extends Filter {
 			$term_id = (int) $row->term_id;
 
 			if ( ! isset( $lineage[ $term_id ] ) ) {
-				$lineage[ $term_id ] = array_merge( array( $term_id ), get_ancestors( $term_id, $this->taxonomy, 'taxonomy' ) );
+				$lineage[ $term_id ] = $this->lineage( $term_id );
 			}
 
 			foreach ( $lineage[ $term_id ] as $id ) {
@@ -347,24 +362,88 @@ final class TaxonomyFilter extends Filter {
 	}
 
 	/**
+	 * Returns the parent of every term of this taxonomy that has one.
+	 *
+	 * @return array<int, int>
+	 */
+	private function parents(): array {
+		global $wpdb;
+
+		if ( null === $this->parents ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One read per page for the whole tree. The term cache would need one lookup per term.
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT term_id, parent FROM {$wpdb->term_taxonomy} WHERE taxonomy = %s AND parent > 0", $this->taxonomy ) );
+
+			$this->parents = array_map( 'intval', wp_list_pluck( (array) $rows, 'parent', 'term_id' ) );
+		}
+
+		return $this->parents;
+	}
+
+	/**
+	 * Returns a term and the terms above it, nearest first.
+	 *
+	 * @return int[]
+	 */
+	private function lineage( int $term_id ): array {
+		$parents = $this->parents();
+		$line    = array( $term_id );
+
+		while ( isset( $parents[ $term_id ] ) && ! in_array( $parents[ $term_id ], $line, true ) ) {
+			$term_id = $parents[ $term_id ];
+			$line[]  = $term_id;
+		}
+
+		return $line;
+	}
+
+	/**
+	 * Keeps the terms of the level that `level` shows: the children of the term being viewed, or the terms
+	 * beside it when it has none.
+	 *
+	 * @param int[] $term_ids Terms with products.
+	 * @param int   $current  Term being viewed, or 0.
+	 * @return int[]
+	 */
+	private function on_level( array $term_ids, int $current ): array {
+		$parents = $this->parents();
+		$under   = static fn( int $of ): array => array_values( array_filter( $term_ids, static fn( int $id ): bool => ( $parents[ $id ] ?? 0 ) === $of ) );
+		$shown   = 0 !== $current ? $under( $current ) : array();
+
+		return array() !== $shown ? $shown : $under( $parents[ $current ] ?? 0 );
+	}
+
+	/**
 	 * Nests options under their parents. An option whose parent is not listed becomes a top level option.
 	 *
 	 * @param array<int, array> $nodes  Options keyed by term ID.
 	 * @param int               $parent Term ID to list the children of.
 	 */
 	private static function tree( array $nodes, int $parent ): array {
-		$options = array();
+		$under = array();
 
 		foreach ( $nodes as $term_id => $node ) {
-			$node_parent = isset( $nodes[ $node['parent'] ] ) ? $node['parent'] : 0;
+			$under[ $node['parent'] !== $term_id && isset( $nodes[ $node['parent'] ] ) ? $node['parent'] : 0 ][] = $term_id;
+		}
 
-			if ( $node_parent !== $parent ) {
-				continue;
-			}
+		return self::nest( $nodes, $under, $parent );
+	}
+
+	/**
+	 * Lists the options under one parent, each with its own children.
+	 *
+	 * @param array<int, array> $nodes  Options keyed by term ID.
+	 * @param array<int, int[]> $under  Term IDs keyed by the parent they are listed under.
+	 * @param int               $parent Term ID to list the children of.
+	 */
+	private static function nest( array $nodes, array $under, int $parent ): array {
+		$options = array();
+
+		foreach ( $under[ $parent ] ?? array() as $term_id ) {
+			$node = $nodes[ $term_id ];
 
 			unset( $node['parent'] );
 
-			$node['children'] = self::tree( $nodes, $term_id );
+			$node['children'] = self::nest( $nodes, $under, $term_id );
 			$options[]        = $node;
 		}
 

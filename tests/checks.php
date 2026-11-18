@@ -529,6 +529,52 @@ if ( $demo && $term( 'audio' ) && $term( 'headphones' ) && $term( 'speakers' ) &
 
 	$check( 'category page: a category whose products are in no other category offers none', array() === $offered( 'headphones' ), $offered( 'headphones' ) );
 
+	// A large category tree must not cost one query per category. Twelve categories are added for the comparison.
+	$spent = static function ( string $display ) use ( $base ): int {
+		global $wpdb;
+
+		$GLOBALS['wp_query'] = new WP_Query();
+		$filter              = new \Starfiniti\Filters\Filter\TaxonomyFilter( 'cat', 'Categories', 'product_cat', $display );
+
+		wp_cache_flush();
+
+		$before = $wpdb->num_queries;
+
+		$filter->facet( \Starfiniti\Filters\Query::ids_sql( $base ), array() );
+
+		return $wpdb->num_queries - $before;
+	};
+
+	$few   = array( $spent( '' ), $spent( 'links' ), $spent( 'level' ) );
+	$added = array();
+
+	for ( $i = 1; $i <= 12; $i++ ) {
+		$made = wp_insert_term( 'Sffilters check ' . $i, 'product_cat', array( 'parent' => $term( 'headphones' )->term_id ) );
+
+		if ( ! is_wp_error( $made ) ) {
+			$added[] = (int) $made['term_id'];
+		}
+	}
+
+	wp_set_object_terms( $crossed, $added, 'product_cat', true );
+
+	$many = array( $spent( '' ), $spent( 'links' ), $spent( 'level' ) );
+
+	wp_remove_object_terms( $crossed, $added, 'product_cat' );
+
+	foreach ( $added as $added_id ) {
+		wp_delete_term( $added_id, 'product_cat' );
+	}
+
+	$check(
+		'speed: a larger category tree costs no more queries',
+		12 === count( $added ) && $many[0] <= $few[0] && $many[1] <= $few[1] && $many[2] <= $few[2],
+		array(
+			'few'  => $few,
+			'many' => $many,
+		)
+	);
+
 	$GLOBALS['wp_query'] = $main_query;
 
 	$path  = static fn( string $slug ): string => (string) wp_parse_url( (string) get_term_link( $term( $slug ) ), PHP_URL_PATH );

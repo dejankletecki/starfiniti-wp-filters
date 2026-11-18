@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.6.1 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.6.2 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 

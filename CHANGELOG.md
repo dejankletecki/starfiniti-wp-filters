@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.6.2
+
+- Fixed the panel slowing down with the size of the category tree. The plugin looked every category up on its own; on a shop with 19,000 categories that was 18,920 database queries and more than two seconds on every shop page. The parents of all categories are now read with one query, and "Links, one level at a time" loads only the categories of the level it shows.
 - Fixed the handles of the price slider taking the text colour the theme gives to inputs. They take the accent colour of the store, like the track between them.
 
 ## 1.6.1
