@@ -27,7 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * A stored filter definition is an array: `slug` (used in the URL as `sf_<slug>`), `source`
  * (`taxonomy`, `property`, `price`, `stock` or `sale`), `taxonomy` for taxonomy filters, `property` for
  * filters by a product property of the store (see Properties), an optional `label` and, for taxonomy
- * filters, `display` set to `links` or `level` when the terms lead to their own pages.
+ * filters, `display` set to `links` or `level` when the terms lead to their own pages, or `share` (above 0,
+ * up to 1) to show a checkbox filter only when at least that share of the listed products has a term.
  * When reading input, `source` may also name the taxonomy or the property directly, for example `pa_color`.
  */
 final class Settings {
@@ -208,6 +209,7 @@ final class Settings {
 				'label'         => $definition['label'] ?? '',
 				'default_label' => self::default_label( $definition['source'], self::key( $definition ) ),
 				'display'       => 'taxonomy' === $definition['source'] ? ( $definition['display'] ?? 'checkboxes' ) : '',
+				'share'         => (float) ( $definition['share'] ?? 0 ),
 				'param'         => 'sf_' . $definition['slug'],
 			);
 		}
@@ -398,6 +400,13 @@ final class Settings {
 			if ( in_array( self::text( $definition, 'display' ), self::DISPLAYS, true ) ) {
 				$clean['display'] = self::text( $definition, 'display' );
 			}
+
+			// Links lead away from the list, so only a checkbox filter can depend on what the list holds.
+			$share = is_numeric( $definition['share'] ?? null ) ? (float) $definition['share'] : 0.0;
+
+			if ( ! isset( $clean['display'] ) && $share > 0 && $share <= 1 ) {
+				$clean['share'] = round( $share, 2 );
+			}
 		}
 
 		if ( '' !== $label ) {
@@ -501,7 +510,7 @@ final class Settings {
 
 		switch ( $definition['source'] ) {
 			case 'taxonomy':
-				return new TaxonomyFilter( $slug, $label, $taxonomy, $definition['display'] ?? '' );
+				return new TaxonomyFilter( $slug, $label, $taxonomy, $definition['display'] ?? '', (float) ( $definition['share'] ?? 0.0 ) );
 
 			case 'property':
 				$key      = $definition['property'];

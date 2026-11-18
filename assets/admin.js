@@ -48,6 +48,18 @@
 			hidden.name = display.name;
 			hidden.value = '';
 			display.replaceWith( hidden );
+
+			// The share of listed products belongs to taxonomies as well.
+			const share = row.querySelector( '[data-sffilters-share]' );
+
+			if ( share ) {
+				const empty = document.createElement( 'input' );
+
+				empty.type = 'hidden';
+				empty.name = share.querySelector( 'input' ).name;
+				empty.value = '';
+				share.replaceWith( empty );
+			}
 		}
 
 		row.querySelectorAll( '[aria-label]' ).forEach( function ( item ) {

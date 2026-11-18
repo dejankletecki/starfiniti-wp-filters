@@ -94,6 +94,7 @@ final class SettingsPage {
 		$slugs   = isset( $posted['slug'] ) && is_array( $posted['slug'] ) ? array_values( $posted['slug'] ) : array();
 		$labels  = isset( $posted['label'] ) && is_array( $posted['label'] ) ? array_values( $posted['label'] ) : array();
 		$shown   = isset( $posted['display'] ) && is_array( $posted['display'] ) ? array_values( $posted['display'] ) : array();
+		$shares  = isset( $posted['share'] ) && is_array( $posted['share'] ) ? array_values( $posted['share'] ) : array();
 		$filters = array();
 
 		// Rows arrive in the order they are shown.
@@ -103,6 +104,8 @@ final class SettingsPage {
 				'slug'    => isset( $slugs[ $index ] ) && is_string( $slugs[ $index ] ) ? sanitize_key( $slugs[ $index ] ) : '',
 				'label'   => isset( $labels[ $index ] ) && is_string( $labels[ $index ] ) ? sanitize_text_field( $labels[ $index ] ) : '',
 				'display' => isset( $shown[ $index ] ) && is_string( $shown[ $index ] ) ? sanitize_key( $shown[ $index ] ) : '',
+				// The page asks for a percentage, the setting is a share from 0 to 1.
+				'share'   => isset( $shares[ $index ] ) && is_numeric( $shares[ $index ] ) ? min( 100, max( 0, (float) $shares[ $index ] ) ) / 100 : 0,
 			);
 		}
 
@@ -138,7 +141,7 @@ final class SettingsPage {
 		foreach ( Settings::definitions() as $definition ) {
 			$key          = Settings::key( $definition );
 			$used[ $key ] = true;
-			$rows        .= $this->row( $key, $definition['slug'], $definition['label'] ?? '', $sources[ $key ]['label'] ?? $key, ! empty( $sources[ $key ]['attribute'] ), 'taxonomy' === $definition['source'], $definition['display'] ?? '' );
+			$rows        .= $this->row( $key, $definition['slug'], $definition['label'] ?? '', $sources[ $key ]['label'] ?? $key, ! empty( $sources[ $key ]['attribute'] ), 'taxonomy' === $definition['source'], $definition['display'] ?? '', (float) ( $definition['share'] ?? 0 ) );
 		}
 
 		foreach ( $sources as $key => $source ) {
@@ -206,7 +209,7 @@ final class SettingsPage {
 				</table>
 
 				<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in row(). ?>
-				<template data-sffilters-template><?php echo $this->row( '', '', '', '%s', false, true, '' ); ?></template>
+				<template data-sffilters-template><?php echo $this->row( '', '', '', '%s', false, true, '', 0.0 ); ?></template>
 
 				<p class="sffilters-admin__add">
 					<label for="sffilters-add"><?php esc_html_e( 'Add a filter', 'starfiniti-filters' ); ?></label>
@@ -252,9 +255,10 @@ final class SettingsPage {
 	 * @param bool   $attribute Whether the source is a product attribute.
 	 * @param bool   $taxonomy  Whether the source is a taxonomy. Only those can be shown as links.
 	 * @param string $display   `links` or `level` when the terms lead to their own pages.
+	 * @param float  $share     Share of the listed products that must have a term for the filter to show, 0 for always.
 	 */
-	private function row( string $key, string $slug, string $label, string $name, bool $attribute, bool $taxonomy, string $display ): string {
-		$shown = '<input type="hidden" name="sffilters[display][]" value="">';
+	private function row( string $key, string $slug, string $label, string $name, bool $attribute, bool $taxonomy, string $display, float $share ): string {
+		$shown = '<input type="hidden" name="sffilters[display][]" value=""><input type="hidden" name="sffilters[share][]" value="">';
 
 		if ( $taxonomy ) {
 			$shown = sprintf(
@@ -266,6 +270,14 @@ final class SettingsPage {
 				esc_html__( 'Links to their own pages', 'starfiniti-filters' ),
 				selected( $display, 'level', false ),
 				esc_html__( 'Links, one level at a time', 'starfiniti-filters' )
+			);
+
+			$shown .= sprintf(
+				' <label class="sffilters-admin__share" data-sffilters-share>%1$s <input type="number" class="small-text" min="0" max="100" step="5" name="sffilters[share][]" value="%2$s" aria-label="%3$s"> %%</label>',
+				esc_html__( 'Show from', 'starfiniti-filters' ),
+				esc_attr( $share > 0 ? (string) round( $share * 100 ) : '' ),
+				/* translators: %s: filter name, for example Colour. */
+				esc_attr( sprintf( __( 'Show the %s filter only when at least this percentage of the listed products has a value', 'starfiniti-filters' ), $name ) )
 			);
 		}
 

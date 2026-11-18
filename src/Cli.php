@@ -64,11 +64,12 @@ final class Cli {
 				'source'   => $filter['source'],
 				'label'    => '' !== $filter['label'] ? $filter['label'] : $filter['default_label'],
 				'display'  => $filter['display'],
+				'share'    => $filter['share'] > 0 ? $filter['share'] : '',
 				'param'    => $filter['param'],
 			);
 		}
 
-		Utils\format_items( $assoc_args['format'] ?? 'table', $rows, array( 'position', 'slug', 'source', 'label', 'display', 'param' ) );
+		Utils\format_items( $assoc_args['format'] ?? 'table', $rows, array( 'position', 'slug', 'source', 'label', 'display', 'share', 'param' ) );
 	}
 
 	/**
@@ -129,6 +130,10 @@ final class Cli {
 	 *   - level
 	 * ---
 	 *
+	 * [--share=<share>]
+	 * : For taxonomies shown as checkboxes. Show the filter only when at least this share of the listed products
+	 * has a term, for example 0.9. Defaults to always.
+	 *
 	 * [--position=<position>]
 	 * : Place in the panel, starting at 1. Defaults to the end.
 	 *
@@ -147,6 +152,7 @@ final class Cli {
 			'label'   => (string) ( $assoc_args['label'] ?? '' ),
 			'slug'    => (string) ( $assoc_args['slug'] ?? '' ),
 			'display' => (string) ( $assoc_args['display'] ?? '' ),
+			'share'   => $assoc_args['share'] ?? 0,
 		);
 		$place   = isset( $assoc_args['position'] ) ? max( 1, (int) $assoc_args['position'] ) : count( $filters ) + 1;
 
@@ -259,6 +265,38 @@ final class Cli {
 
 		$this->save( array( 'filters' => $filters ) );
 		WP_CLI::success( sprintf( 'The filter "%s" now shows its terms as %s.', $args[0], $args[1] ) );
+	}
+
+	/**
+	 * Sets when a taxonomy filter with checkboxes shows.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <slug>
+	 * : Slug of the filter, see `wp sffilters list`.
+	 *
+	 * <share>
+	 * : Show the filter only when at least this share of the listed products has a term, for example 0.9.
+	 * 0 shows it whenever a listed product has one.
+	 *
+	 * @param array $args Positional arguments.
+	 */
+	public function share( array $args ): void {
+		$filters = Settings::definitions();
+		$index   = $this->find( $filters, $args[0] );
+
+		if ( 'taxonomy' !== $filters[ $index ]['source'] || isset( $filters[ $index ]['display'] ) ) {
+			WP_CLI::error( 'Only a taxonomy filter with checkboxes can depend on the listed products.' );
+		}
+
+		if ( ! is_numeric( $args[1] ) || (float) $args[1] < 0 || (float) $args[1] > 1 ) {
+			WP_CLI::error( 'The share is a number from 0 to 1.' );
+		}
+
+		$filters[ $index ]['share'] = (float) $args[1];
+
+		$this->save( array( 'filters' => $filters ) );
+		WP_CLI::success( sprintf( 'The filter "%s" now shows from a share of %s.', $args[0], $args[1] ) );
 	}
 
 	/**

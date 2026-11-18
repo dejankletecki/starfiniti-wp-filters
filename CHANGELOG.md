@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.5.0
+
+- A taxonomy filter with checkboxes can show only when enough of the listed products have a term: set the share on the settings page ("Show from"), with `wp sffilters share` or through the abilities. A filter for an attribute that few products of a category have then stays out of the way there.
+- Added the `sffilters_facet` filter. A store can leave a value out of a filter, sort the values or hide a filter on some pages.
+- Added the Croatian translation.
+- Sizes in the stylesheet are now in pixels and em, none in rem, so the panel and the drawer keep their size in themes that change the root font size, as Bricks does.
+
 ## 1.4.3
 
 - Fixed checkboxes that came out wider than tall where the theme gives every input a padding, as Bricks does.

@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.4.3 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.5.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -129,6 +129,7 @@ wp sffilters move price 1
 wp sffilters label cat "Product type"
 wp sffilters display cat links
 wp sffilters display cat level
+wp sffilters share color 0.9
 wp sffilters remove sale
 wp sffilters pagination more
 wp sffilters rebuild
@@ -154,6 +155,20 @@ add_filter(
 );
 
 add_filter( 'sffilters_pagination', static fn() => 'more' );
+
+// Leave "Out of stock" out of the availability filter.
+add_filter(
+	'sffilters_facet',
+	static function ( $facet, $slug ) {
+		if ( 'stock' === $slug && ! empty( $facet['options'] ) ) {
+			$facet['options'] = array_values( array_filter( $facet['options'], static fn( $option ) => 'outofstock' !== $option['value'] ) );
+		}
+
+		return $facet;
+	},
+	10,
+	2
+);
 ```
 
 ## How it works

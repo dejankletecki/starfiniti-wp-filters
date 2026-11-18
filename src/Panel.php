@@ -254,7 +254,17 @@ final class Panel {
 			}
 
 			if ( '' !== $this->ids_sql[ $key ] ) {
-				$groups .= $this->group( $filter, $filter->facet( $this->ids_sql[ $key ], $state->values( $slug ) ) );
+				/**
+				 * Filters what one filter offers in the panel, for example to leave a value out or to sort the values.
+				 * An empty array hides the filter.
+				 *
+				 * @param array  $facet  What the filter offers: `kind` and, by kind, `options`, `back`, `min`, `max` or `count`.
+				 * @param string $slug   Slug of the filter.
+				 * @param Filter $filter The filter.
+				 */
+				$facet = (array) apply_filters( 'sffilters_facet', $filter->facet( $this->ids_sql[ $key ], $state->values( $slug ) ), $slug, $filter );
+
+				$groups .= $this->group( $filter, $facet );
 			}
 		}
 

@@ -166,6 +166,19 @@ async function propertyChecks( properties ) {
 	check( 'properties: the number is left out where few products have it', ! shop.html.includes( 'name="sf_length[min]"' ) );
 	check( 'properties: the number is in the panel where enough products have it', category.status === 200 && category.html.includes( 'name="sf_length[min]"' ), category.status );
 	check( 'properties: the number shows its unit', /sffilters-range__unit">cm</.test( category.html ) );
+
+	// A third of the demo products has a tag.
+	const always = await page( '/shop/?sffilters_test_share=0' );
+	const mostly = await page( '/shop/?sffilters_test_share=0.9' );
+	const some = await page( '/shop/?sffilters_test_share=0.3' );
+
+	check( 'share: a taxonomy filter shows whenever a listed product has a term', always.html.includes( 'name="sf_tag[]"' ) );
+	check( 'share: it is left out where too few of the listed products have one', mostly.status === 200 && ! mostly.html.includes( 'name="sf_tag[]"' ) );
+	check( 'share: it shows where enough of them do', some.html.includes( 'name="sf_tag[]"' ) );
+
+	const pruned = await page( '/shop/?sffilters_test_facet=1' );
+
+	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );
 }
 
 // Categories as links, one level at a time. The helper of the checks switches this on for `sffilters_test_level`.

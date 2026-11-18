@@ -51,6 +51,12 @@ final class Abilities {
 					'enum'        => array( 'checkboxes', 'links', 'level', '' ),
 					'description' => 'For taxonomies. checkboxes filters the current list. links makes each term a link to its own page, for example the category page. level does the same one level at a time: the subcategories of the page being viewed, or the categories beside it.',
 				),
+				'share'   => array(
+					'type'        => 'number',
+					'minimum'     => 0,
+					'maximum'     => 1,
+					'description' => 'For taxonomies shown as checkboxes. Show the filter only when at least this share of the listed products has a term, for example 0.9. 0 or left out shows it whenever a listed product has one.',
+				),
 				'slug'    => array(
 					'type'        => 'string',
 					'description' => 'Used in the URL as sf_<slug>. Keep the slug of an existing filter. Empty for the default.',

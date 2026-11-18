@@ -72,3 +72,44 @@ add_filter(
 		return $properties;
 	}
 );
+
+/*
+ * Two more hooks a store may add, switched on from the address for the checks of the shop pages:
+ * `sffilters_test_share` adds a tag filter that shows from that share of the listed products (0 for always),
+ * `sffilters_test_facet` leaves "Out of stock" out of the availability filter.
+ */
+add_filter(
+	'sffilters_filter_definitions',
+	static function ( $definitions ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper, reads a number.
+		if ( ! isset( $_GET['sffilters_test_share'] ) || ! is_array( $definitions ) ) {
+			return $definitions;
+		}
+
+		$definitions = array_filter( $definitions, static fn( $definition ): bool => 'product_tag' !== ( $definition['taxonomy'] ?? '' ) );
+
+		$definitions[] = array(
+			'source' => 'product_tag',
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput -- Test helper, cast to a number.
+			'share'  => (float) $_GET['sffilters_test_share'],
+		);
+
+		return array_values( $definitions );
+	}
+);
+
+add_filter(
+	'sffilters_facet',
+	static function ( $facet, $slug ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper.
+		if ( ! isset( $_GET['sffilters_test_facet'] ) || 'stock' !== $slug || empty( $facet['options'] ) ) {
+			return $facet;
+		}
+
+		$facet['options'] = array_values( array_filter( $facet['options'], static fn( array $option ): bool => 'outofstock' !== $option['value'] ) );
+
+		return $facet;
+	},
+	10,
+	2
+);
