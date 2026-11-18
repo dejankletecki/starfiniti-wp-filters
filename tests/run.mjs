@@ -120,6 +120,7 @@ async function shopChecks( expected ) {
 	check( 'shop: the handles of the price slider take the accent colour, not the colour the theme gives to inputs', /\.sffilters-slider input \{[^}]*color: inherit;/.test( styles ) );
 	check( 'shop: a checkbox stays square where the theme pads every input', /input\[type="checkbox"\] \{[^}]*min-width: 0;[^}]*padding: 0;/.test( styles ) );
 	check( 'shop: the wrapper keeps the layout of the Breakdance shop element', /\.breakdance-woocommerce > \.sffilters-results \{[^}]*display: inherit;[^}]*flex-flow: inherit;/.test( styles ) );
+	check( 'litespeed: the page holds the words the script exclusions look for', shop.html.includes( 'sffiltersConfig' ) && shop.html.includes( 'sffilters-mobile' ) && shop.html.includes( 'starfiniti-filters/assets/filters.js' ) && shop.html.includes( 'starfiniti-filters/assets/filters.css' ) );
 	check( 'shop: small screens are marked before the page is drawn', /matchMedia\("\(max-width: 768px\)"\)[^<]*sffilters-mobile/.test( shop.html ) );
 
 	const filtered = await page( '/shop/?sf_cat=headphones' );

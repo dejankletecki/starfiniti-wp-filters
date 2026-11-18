@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.1
+
+- Works with the CSS and JS optimization of LiteSpeed Cache out of the box. With "Unique CSS" or Guest optimization switched on, the panel could be drawn without its styles, and with delayed JavaScript the first click on a filter was lost. The stylesheet and the script of the panel are now kept out of that optimization.
+
 ## 1.7.0
 
 - The price filter can show as ready-made ranges to pick one from, in place of the slider: set "Ready-made ranges" on the settings page, or run `wp sffilters display price ranges`. The panel offers up to four ranges with the number of products in each, cut at the prices a quarter, a half and three quarters of the way through the listed products. Choosing the chosen range again gives it up.

@@ -829,6 +829,19 @@ if ( $demo ) {
 	\Starfiniti\Filters\Settings::save( array( 'filters' => array_merge( \Starfiniti\Filters\Settings::definitions(), array( array( 'source' => 'tone' ), array( 'source' => 'length' ) ) ) ) );
 }
 
+// --- LiteSpeed Cache. The lists are asked for the way LiteSpeed asks for them.
+
+$kept_css = apply_filters( 'litespeed_optimize_css_excludes', array( 'store.css' ) );
+$check( 'litespeed: the stylesheet of the panel is kept out of CSS optimization, with what the store set', array( 'store.css', 'starfiniti-filters/assets/filters.css' ) === $kept_css, $kept_css );
+
+foreach ( array( 'litespeed_optimize_js_excludes', 'litespeed_optm_js_defer_exc', 'litespeed_optm_gm_js_exc' ) as $litespeed_hook ) {
+	$kept_js = apply_filters( $litespeed_hook, '' );
+
+	$check( 'litespeed: the script and its two inline scripts are kept out of ' . $litespeed_hook, array( 'starfiniti-filters/assets/filters.js', 'sffiltersConfig', 'sffilters-mobile' ) === $kept_js, $kept_js );
+}
+
+$check( 'litespeed: an entry is listed once', $kept_css === apply_filters( 'litespeed_optimize_css_excludes', $kept_css ) );
+
 // --- Updates. GitHub is played by the list below, nothing leaves the machine.
 
 $file     = plugin_basename( SFFILTERS_PLUGIN_FILE );

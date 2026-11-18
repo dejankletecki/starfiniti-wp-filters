@@ -9,6 +9,7 @@ namespace Starfiniti\Filters;
 
 use Starfiniti\Filters\Admin\SettingsPage;
 use Starfiniti\Filters\Filter\Filter;
+use Starfiniti\Filters\Integration\LiteSpeed;
 use Starfiniti\Filters\Integration\MainQuery;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -55,6 +56,7 @@ final class Plugin {
 		( new Query() )->register();
 		( new Properties() )->register();
 		( new MainQuery() )->register();
+		( new LiteSpeed() )->register();
 		$this->panel()->register();
 		( new Abilities() )->register();
 

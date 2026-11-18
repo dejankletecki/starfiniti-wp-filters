@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.7.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.7.1 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -20,6 +20,7 @@ Working now:
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
 - Checkboxes drawn the same in every browser, in the accent colour of the store
 - Works with the Breakdance "Shop Page" element
+- Works with LiteSpeed Cache: its CSS and JS optimization leaves the panel alone
 - Works with product archives a page builder draws itself from the main query: the Breakdance post loop and a Bricks query loop set as the main query
 - A settings page under WooCommerce > Filters, the same settings through WP-CLI and the WordPress Abilities API
 - English and Slovenian
