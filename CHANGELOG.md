@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.1
+
+- On a category page the category checkboxes now offer every other category the listed products are in, not only the subcategories of that page. A shopper on "Mugs" can narrow the list to "Gifts for him". The category being viewed and the ones above it are left out, because they hold every listed product.
+
 ## 1.6.0
 
 - Subcategories now fold away behind an arrow next to their category, in the checkbox tree and in the tree of links. A branch starts open when it holds a chosen value or the category being viewed, and a branch the shopper opened stays open while they filter. It works without the script.

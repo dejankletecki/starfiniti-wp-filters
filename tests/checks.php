@@ -504,6 +504,31 @@ if ( $demo && $term( 'audio' ) && $term( 'headphones' ) && $term( 'speakers' ) &
 
 	$check( 'level: links read nothing from the URL', array() === $walked->parse( 'audio' ) );
 
+	// Checkboxes on a category page. One pair of headphones is also filed under Home for these checks.
+	$boxes   = new \Starfiniti\Filters\Filter\TaxonomyFilter( 'cat', 'Categories', 'product_cat' );
+	$crossed = $expect( static fn( $p ) => $in_category( $p, 'headphones' ) )[0];
+	$offered = static function ( string $slug ) use ( $boxes, $base ): array {
+		$GLOBALS['wp_query'] = new WP_Query(
+			array(
+				'post_type'   => 'product',
+				'product_cat' => $slug,
+			)
+		);
+
+		$facet = $boxes->facet( \Starfiniti\Filters\Query::ids_sql( array_merge( $base, array( 'product_cat' => $slug ) ) ), array() );
+
+		return array_column( $facet['options'] ?? array(), 'count', 'label' );
+	};
+
+	wp_set_object_terms( $crossed, array( $term( 'home' )->term_id ), 'product_cat', true );
+
+	$check( 'category page: the checkboxes offer the other categories of the listed products', array( 'Home' => 1 ) === $offered( 'headphones' ), $offered( 'headphones' ) );
+	$check( 'category page: its subcategories come first, the category itself is not offered', array( 'Headphones', 'Home', 'Speakers' ) === array_keys( $offered( 'audio' ) ) && 1 === $offered( 'audio' )['Home'], $offered( 'audio' ) );
+
+	wp_remove_object_terms( $crossed, array( $term( 'home' )->term_id ), 'product_cat' );
+
+	$check( 'category page: a category whose products are in no other category offers none', array() === $offered( 'headphones' ), $offered( 'headphones' ) );
+
 	$GLOBALS['wp_query'] = $main_query;
 
 	$path  = static fn( string $slug ): string => (string) wp_parse_url( (string) get_term_link( $term( $slug ) ), PHP_URL_PATH );

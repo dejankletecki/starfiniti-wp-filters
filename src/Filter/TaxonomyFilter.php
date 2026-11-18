@@ -17,7 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Covers categories, tags, brands and product attributes.
  *
- * Shown as checkboxes, the terms filter the current list. Shown as links, each term leads to its own page,
+ * Shown as checkboxes, the terms filter the current list. On a category page the checkboxes offer every other
+ * category the listed products are in, so a shopper on "Mugs" can narrow the list to "Gifts". Shown as links,
+ * each term leads to its own page,
  * for example the category page, and nothing is read from the URL: `links` lists the whole tree, `level`
  * lists one level at a time, the way a shopper walks down the categories.
  */
@@ -81,7 +83,12 @@ final class TaxonomyFilter extends Filter {
 		$counts = $this->counts( $ids_sql, $hierarchical );
 		$nodes  = array();
 
-		foreach ( $this->terms( array_keys( $counts ), $values, $root ) as $term ) {
+		// The category being viewed and the ones above it hold every listed product, so they are not offered.
+		foreach ( 0 !== $root ? array_merge( array( $root ), get_ancestors( $root, $this->taxonomy, 'taxonomy' ) ) : array() as $above ) {
+			unset( $counts[ $above ] );
+		}
+
+		foreach ( $this->terms( array_keys( $counts ), $values ) as $term ) {
 			$nodes[ $term->term_id ] = array(
 				'value'    => urldecode( $term->slug ),
 				'label'    => $term->name,
@@ -122,7 +129,7 @@ final class TaxonomyFilter extends Filter {
 		$counts = $this->counts( Query::ids_sql( $base ), is_taxonomy_hierarchical( $this->taxonomy ) );
 		$nodes  = array();
 
-		foreach ( $this->terms( array_keys( $counts ), array(), 0 ) as $term ) {
+		foreach ( $this->terms( array_keys( $counts ), array() ) as $term ) {
 			$url = get_term_link( $term );
 
 			if ( is_wp_error( $url ) ) {
@@ -247,24 +254,19 @@ final class TaxonomyFilter extends Filter {
 	 *
 	 * @param int[]    $term_ids Terms with at least one product.
 	 * @param string[] $selected Selected term slugs.
-	 * @param int      $root     When set, only descendants of this term are offered.
 	 * @return \WP_Term[]
 	 */
-	private function terms( array $term_ids, array $selected, int $root ): array {
+	private function terms( array $term_ids, array $selected ): array {
 		$terms = array();
 
 		if ( array() !== $term_ids ) {
-			$args = array(
-				'taxonomy'   => $this->taxonomy,
-				'hide_empty' => false,
-				'include'    => $term_ids,
+			$found = get_terms(
+				array(
+					'taxonomy'   => $this->taxonomy,
+					'hide_empty' => false,
+					'include'    => $term_ids,
+				)
 			);
-
-			if ( 0 !== $root ) {
-				$args['child_of'] = $root;
-			}
-
-			$found = get_terms( $args );
 
 			if ( ! is_wp_error( $found ) ) {
 				foreach ( $found as $term ) {
