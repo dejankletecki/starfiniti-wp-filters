@@ -249,6 +249,7 @@ async function propertyChecks( properties ) {
 	check( 'drawer: the panel is a list again when it goes back into the page', /unfold\( panel \);\s*if \( slot && slot\.isConnected \)/.test( script ) );
 	check( 'drawer: the rows are built again after the list is filtered', /panel\.replaceWith\( fresh \);\s*if \( drawer && drawer\.contains\( fresh \) \) \{\s*fold\( fresh \);/.test( script ) );
 	check( 'drawer: the rows are close together whatever gap the store gives its panel', /\.sffilters-drawer \.sffilters-panel--horizontal \{[^}]*gap: 8px;/.test( styles ) );
+	check( 'drawer: the lines and the space a store puts between its filters do not show between the rows', /\.sffilters-drawer \.sffilters-panel--horizontal \.sffilters-filter \{\s*border: 0;\s*margin: 0;\s*padding: 0;/.test( styles ) );
 	check( 'mobile: the "Filters" button is a full-width button in the accent colour', /\.sffilters-mobile \.sffilters-bar \.sffilters-toggle \{[^}]*background: var\(--sffilters-button-color\) !important;[^}]*min-height: 48px !important;[^}]*width: 100% !important;/.test( styles ) );
 	check( 'mobile: the button has an icon and the store can set its colour', /\.sffilters-toggle::before \{[^}]*mask: url\(/.test( styles ) && styles.includes( '--sffilters-button-color: var(--sffilters-button, var(--sffilters-accent,' ) );
 	check( 'mobile: the bar fills the row the page builder puts it in', /\.sffilters-mobile \.sffilters-bar \{[^}]*align-self: stretch;[^}]*flex-grow: 1;/.test( styles ) );

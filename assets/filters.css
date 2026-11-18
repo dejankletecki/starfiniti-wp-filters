@@ -896,6 +896,14 @@
 	gap: 8px;
 }
 
+/* A store may part the filters of its panel with lines and space. In the drawer the rows do that. */
+
+.sffilters-drawer .sffilters-panel--horizontal .sffilters-filter {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+
 .sffilters-drawer :is(.sffilters-drop__toggle, .sffilters-panel--horizontal > .sffilters-filter--toggle .sffilters-option__control) {
 	display: flex;
 	width: 100%;

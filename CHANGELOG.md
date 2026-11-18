@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.1
+
+- The rows in the drawer keep the same distance in stores that part the filters of their panel with a line and space of their own.
+
 ## 1.11.0
 
 - In the drawer on small screens every filter is now a row that opens it, for the vertical panel too: one filter is open at a time and a row says how many values are chosen. Until now only the horizontal panel was laid out that way, and the vertical one showed all its filters open, one under the other.
