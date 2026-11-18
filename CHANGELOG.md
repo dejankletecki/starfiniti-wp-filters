@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.4.2
+
+- Fixed the checkboxes sitting a little below their labels. The box is now in the middle of the first line of its label, whatever the font and line height of the store.
+
 ## 1.4.1
 
 - Fixed the Breakdance shop element: the result count and the sorting stay next to each other, as the store laid them out. The wrapper around the results had put them one under the other.

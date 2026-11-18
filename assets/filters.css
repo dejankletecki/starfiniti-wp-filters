@@ -54,10 +54,14 @@
 	margin: 0;
 }
 
-/* Checkboxes are drawn here, so they look the same in every browser and take the accent colour of the store. */
+/*
+ * Checkboxes are drawn here, so they look the same in every browser and take the accent colour of the store.
+ * The box sits in the middle of the first line of its label, whatever the font and line height of the store.
+ */
 
 .sffilters-option__control input[type="checkbox"] {
 	-webkit-appearance: none;
+	align-self: flex-start;
 	appearance: none;
 	background: #fff;
 	border: 1.5px solid var(--sffilters-border, #767676);
@@ -67,8 +71,10 @@
 	display: inline-grid;
 	font-size: inherit;
 	height: 1.25em;
+	line-height: inherit;
+	margin-top: 0.1em;
+	margin-top: calc((1lh - 1.25em) / 2);
 	place-content: center;
-	transform: translateY(0.22em);
 	transition: background-color 0.12s, border-color 0.12s, box-shadow 0.12s;
 	width: 1.25em;
 }
@@ -112,7 +118,6 @@
 	.sffilters-option__control input[type="checkbox"] {
 		-webkit-appearance: auto;
 		appearance: auto;
-		transform: none;
 	}
 
 	.sffilters-option__control input[type="checkbox"]::before {
