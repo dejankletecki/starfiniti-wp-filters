@@ -355,13 +355,13 @@ if ( $demo && is_array( $tags ) && array() !== $tags ) {
 	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- A helper of a test run.
 	file_put_contents(
 		WPMU_PLUGIN_DIR . '/sffilters-test-loop.php',
-		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Registers the test properties, draws product tag pages\n// without the WooCommerce loop hooks and shows categories one level at a time when the address asks for it.\n"
+		"<?php\n// Written by tests/checks.php of Starfiniti Filters. Registers the test properties, draws product tag pages\n// without the WooCommerce loop hooks and shows categories as links, one level at a time or the whole tree, when the address asks for it.\n"
 		. "add_action(\n\t'plugins_loaded',\n\tstatic function () {\n"
 		. "\t\tif ( defined( 'SFFILTERS_PLUGIN_DIR' ) ) {\n\t\t\trequire_once SFFILTERS_PLUGIN_DIR . 'tests/properties.php';\n\t\t}\n"
 		. "\t},\n\t5\n);\n"
 		. "add_filter(\n\t'sffilters_filter_definitions',\n\tstatic function ( \$definitions ) {\n"
 		. "\t\tforeach ( isset( \$_GET['sffilters_test_level'] ) ? array_keys( \$definitions ) : array() as \$index ) {\n"
-		. "\t\t\tif ( 'product_cat' === ( \$definitions[ \$index ]['taxonomy'] ?? '' ) ) {\n\t\t\t\t\$definitions[ \$index ]['display'] = 'level';\n\t\t\t}\n\t\t}\n\n"
+		. "\t\t\tif ( 'product_cat' === ( \$definitions[ \$index ]['taxonomy'] ?? '' ) ) {\n\t\t\t\t\$definitions[ \$index ]['display'] = 'links' === \$_GET['sffilters_test_level'] ? 'links' : 'level';\n\t\t\t}\n\t\t}\n\n"
 		. "\t\treturn \$definitions;\n\t}\n);\n"
 		. "// Prints what an SEO plugin would get from the `rank_math/frontend/robots` filter.\n"
 		. "add_action(\n\t'wp_head',\n\tstatic function () {\n"

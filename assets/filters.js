@@ -490,6 +490,13 @@
 		more();
 	}
 
+	// Names one branch of a tree: its filter and its own option.
+	function branchKey( branch ) {
+		var group = branch.closest( '[data-sffilters-param]' );
+
+		return ( group ? group.getAttribute( 'data-sffilters-param' ) : '' ) + ' ' + branch.getAttribute( 'data-sffilters-branch' );
+	}
+
 	function swap( doc ) {
 		var current = document.querySelector( RESULTS );
 		var next = doc.querySelector( RESULTS );
@@ -502,10 +509,25 @@
 
 		document.querySelectorAll( PANEL ).forEach( function ( panel ) {
 			var fresh = findPanel( doc, panel.getAttribute( 'data-sffilters-panel' ) );
+			var open = {};
 
-			if ( fresh ) {
-				panel.replaceWith( document.importNode( fresh, true ) );
+			if ( ! fresh ) {
+				return;
 			}
+
+			// The branches the shopper opened stay open in the new panel.
+			panel.querySelectorAll( '[data-sffilters-branch][open]' ).forEach( function ( branch ) {
+				open[ branchKey( branch ) ] = true;
+			} );
+
+			fresh = document.importNode( fresh, true );
+			panel.replaceWith( fresh );
+
+			fresh.querySelectorAll( '[data-sffilters-branch]' ).forEach( function ( branch ) {
+				if ( open[ branchKey( branch ) ] ) {
+					branch.open = true;
+				}
+			} );
 		} );
 
 		if ( doc.title ) {

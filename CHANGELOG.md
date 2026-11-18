@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Subcategories now fold away behind an arrow next to their category, in the checkbox tree and in the tree of links. A branch starts open when it holds a chosen value or the category being viewed, and a branch the shopper opened stays open while they filter. It works without the script.
+
 ## 1.5.0
 
 - A taxonomy filter with checkboxes can show only when enough of the listed products have a term: set the share on the settings page ("Show from"), with `wp sffilters share` or through the abilities. A filter for an attribute that few products of a category have then stays out of the way there.

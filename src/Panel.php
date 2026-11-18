@@ -359,16 +359,29 @@ final class Panel {
 	 */
 	private function options( string $name, array $options ): string {
 		$items = '';
+		$tree  = false;
 
 		foreach ( $options as $option ) {
+			$under = '';
+
+			if ( ! empty( $option['children'] ) ) {
+				$tree  = true;
+				$under = $this->branch(
+					(string) $option['value'],
+					(string) $option['label'],
+					self::holds( $option['children'], 'selected' ),
+					$this->options( $name, $option['children'] )
+				);
+			}
+
 			$items .= sprintf(
 				'<li class="sffilters-option">%s%s</li>',
 				$this->checkbox( $name, (string) $option['value'], (string) $option['label'], (int) $option['count'], (bool) $option['selected'] ),
-				empty( $option['children'] ) ? '' : $this->options( $name, $option['children'] )
+				$under
 			);
 		}
 
-		return '<ul class="sffilters-options">' . $items . '</ul>';
+		return '<ul class="sffilters-options' . ( $tree ? ' sffilters-options--tree' : '' ) . '">' . $items . '</ul>';
 	}
 
 	/**
@@ -376,19 +389,65 @@ final class Panel {
 	 */
 	private function links( array $options ): string {
 		$items = '';
+		$tree  = false;
 
 		foreach ( $options as $option ) {
+			$under = '';
+
+			if ( ! empty( $option['children'] ) ) {
+				$tree  = true;
+				$under = $this->branch(
+					(string) $option['url'],
+					(string) $option['label'],
+					$option['current'] || self::holds( $option['children'], 'current' ),
+					$this->links( $option['children'] )
+				);
+			}
+
 			$items .= sprintf(
 				'<li class="sffilters-option"><a class="sffilters-option__control sffilters-option__link" href="%1$s"%2$s><span class="sffilters-option__label">%3$s</span> <span class="sffilters-option__count">%4$s</span></a>%5$s</li>',
 				esc_url( (string) $option['url'] ),
 				$option['current'] ? ' aria-current="page"' : '',
 				esc_html( (string) $option['label'] ),
 				esc_html( number_format_i18n( (int) $option['count'] ) ),
-				empty( $option['children'] ) ? '' : $this->links( $option['children'] )
+				$under
 			);
 		}
 
-		return '<ul class="sffilters-options">' . $items . '</ul>';
+		return '<ul class="sffilters-options' . ( $tree ? ' sffilters-options--tree' : '' ) . '">' . $items . '</ul>';
+	}
+
+	/**
+	 * Folds the options under one option away behind an arrow. The branch starts open when it holds a choice
+	 * the shopper made. It is a `details` element, so it opens without the script too.
+	 *
+	 * @param string $key   What tells this branch from the others of its filter: the value or the address of its option.
+	 * @param string $label Label of the option the branch belongs to.
+	 * @param bool   $open  Whether the branch starts open.
+	 * @param string $list  The rendered options under it.
+	 */
+	private function branch( string $key, string $label, bool $open, string $list ): string {
+		return sprintf(
+			'<details class="sffilters-branch" data-sffilters-branch="%1$s"%2$s><summary class="sffilters-branch__toggle" aria-label="%3$s"></summary>%4$s</details>',
+			esc_attr( $key ),
+			$open ? ' open' : '',
+			/* translators: %s: name of a category that has subcategories. */
+			esc_attr( sprintf( __( '%s: subcategories', 'starfiniti-filters' ), $label ) ),
+			$list
+		);
+	}
+
+	/**
+	 * Tells whether one of the options, at any depth, carries the flag: `selected` for checkboxes, `current` for links.
+	 */
+	private static function holds( array $options, string $flag ): bool {
+		foreach ( $options as $option ) {
+			if ( ! empty( $option[ $flag ] ) || ( ! empty( $option['children'] ) && self::holds( $option['children'], $flag ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private function checkbox( string $name, string $value, string $label, int $count, bool $selected ): string {

@@ -129,6 +129,16 @@ async function shopChecks( expected ) {
 	check( 'shop: the chosen value is ticked in the panel', /value="headphones"[^>]*\bchecked\b|\bchecked\b[^>]*value="headphones"/.test( filtered.html ) );
 	check( 'shop: the chosen value can be removed above the products', /sffilters-chip/.test( filtered.html ) && ! /sffilters-chip/.test( shop.html ) );
 
+	// Headphones is a subcategory of Audio in the demo store.
+	const branch = ( html ) => html.match( /<details class="sffilters-branch" data-sffilters-branch="audio"[^>]*>/ )?.[ 0 ] ?? '';
+
+	check( 'tree: subcategories fold away behind an arrow', '' !== branch( shop.html ) && ! / open/.test( branch( shop.html ) ) && /sffilters-options sffilters-options--tree/.test( shop.html ), branch( shop.html ) );
+	check( 'tree: the arrow says which category it opens', /<summary class="sffilters-branch__toggle" aria-label="Audio: subcategories"><\/summary><ul class="sffilters-options/.test( shop.html ) );
+	check( 'tree: the branch with a chosen value starts open', / open/.test( branch( filtered.html ) ), branch( filtered.html ) );
+	check( 'tree: a chosen category does not open its own subcategories', ! / open/.test( branch( ( await page( '/shop/?sf_cat=audio' ) ).html ) ) );
+	check( 'tree: every row leaves room for the arrow', /\.sffilters-options--tree \.sffilters-option__control \{\s*margin-left: 24px;/.test( styles ) && /\.sffilters-branch__toggle \{[^}]*position: absolute;[^}]*width: 24px;/.test( styles ) );
+	check( 'tree: the script keeps the opened branches open', /\[data-sffilters-branch\]\[open\]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) );
+
 	for ( const item of expected ) {
 		const result = await page( item.path + ( item.query ? `?${ item.query }` : '' ) );
 		const found = total( result.html );
@@ -192,6 +202,15 @@ async function levelChecks( level ) {
 	check( 'level: a category without subcategories links to the one beside it', link( level.beside ).test( leaf ) );
 	check( 'level: the category being viewed is marked', /aria-current="page"/.test( leaf ) );
 	check( 'level: the way back leads one level up', new RegExp( `sffilters-filter__all"><a href="[^"]*${ level.above }"` ).test( leaf ) );
+	check( 'level: one level has nothing to fold', ! shop.includes( 'sffilters-branch' ) && ! leaf.includes( 'sffilters-branch' ) );
+
+	// The whole tree as links: the branch of the category being viewed is open, the others are folded.
+	const tree = panel( ( await page( '/shop/?sffilters_test_level=links' ) ).html );
+	const inside = panel( ( await page( `${ level.leaf }?sffilters_test_level=links` ) ).html );
+	const open = ( html ) => ( html.match( /<details class="sffilters-branch"[^>]* open>/g ) || [] ).length;
+
+	check( 'links: the tree of links folds its subcategories', tree.includes( '<details class="sffilters-branch"' ) && 0 === open( tree ) && link( level.leaf ).test( tree ) );
+	check( 'links: the branch of the category being viewed is open', 1 === open( inside ) && new RegExp( `data-sffilters-branch="[^"]*${ level.above }" open>` ).test( inside ), open( inside ) );
 }
 
 try {

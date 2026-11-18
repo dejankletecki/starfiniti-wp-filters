@@ -250,3 +250,7 @@ msgstr "Prikaži od"
 #. translators: %s: filter name, for example Colour.
 msgid "Show the %s filter only when at least this percentage of the listed products has a value"
 msgstr "Filtar %s prikaži samo kad barem ovoliki postotak prikazanih proizvoda ima vrijednost"
+
+#. translators: %s: name of a category that has subcategories.
+msgid "%s: subcategories"
+msgstr "%s: potkategorije"
