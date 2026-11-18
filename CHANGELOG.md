@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed the handles of the price slider taking the text colour the theme gives to inputs. They take the accent colour of the store, like the track between them.
+
 ## 1.6.1
 
 - On a category page the category checkboxes now offer every other category the listed products are in, not only the subcategories of that page. A shopper on "Mugs" can narrow the list to "Gifts for him". The category being viewed and the ones above it are left out, because they hold every listed product.
