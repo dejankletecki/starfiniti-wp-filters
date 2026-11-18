@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 1.6.0
+
 - Subcategories now fold away behind an arrow next to their category, in the checkbox tree and in the tree of links. A branch starts open when it holds a chosen value or the category being viewed, and a branch the shopper opened stays open while they filter. It works without the script.
+- The plugin moved to a new repository on GitHub, and updates are read from there. A store on 1.5.0 or older does not find this version by itself: install it once from the ZIP of the release, later updates arrive in WordPress again.
+- An update is also accepted after the repository moves to the Starfiniti organization on GitHub, so a store keeps finding its updates.
 
 ## 1.5.0
 

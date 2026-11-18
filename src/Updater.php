@@ -22,13 +22,21 @@ final class Updater {
 	/**
 	 * Must match the `Update URI` header of the plugin.
 	 */
-	public const UPDATE_URI = 'https://github.com/Starfiniti/starfiniti-filters';
+	public const UPDATE_URI = 'https://github.com/dejankletecki/starfiniti-wp-filters';
 
 	public const CACHE_KEY = 'sffilters_release';
 
-	private const RELEASE_API = 'https://api.github.com/repos/Starfiniti/starfiniti-filters/releases/latest';
+	private const RELEASE_API = 'https://api.github.com/repos/dejankletecki/starfiniti-wp-filters/releases/latest';
 
-	private const REPOSITORY_PATH = '/Starfiniti/starfiniti-filters';
+	/**
+	 * Where the files of a release may come from: this repository under the account that holds it, or under the
+	 * Starfiniti organization. GitHub answers with the new address once a repository has moved there, and a
+	 * store has to keep finding its updates.
+	 */
+	private const HOMES = array(
+		'https://github.com/dejankletecki/starfiniti-wp-filters',
+		'https://github.com/Starfiniti/starfiniti-wp-filters',
+	);
 
 	private const REQUIRES_WP = '6.6';
 
@@ -118,7 +126,7 @@ final class Updater {
 	 * @return mixed A file path, an error, or the unchanged reply for packages of other plugins.
 	 */
 	public function download( $reply, $package ) {
-		if ( false !== $reply || ! is_string( $package ) || ! str_starts_with( $package, self::UPDATE_URI . '/releases/download/' ) ) {
+		if ( false !== $reply || ! is_string( $package ) || '' === self::home( $package ) ) {
 			return $reply;
 		}
 
@@ -178,6 +186,19 @@ final class Updater {
 	}
 
 	/**
+	 * Returns the home of this repository a release file belongs to, or an empty string for any other address.
+	 */
+	private static function home( string $url ): string {
+		foreach ( self::HOMES as $home ) {
+			if ( str_starts_with( $url, $home . '/releases/download/' ) ) {
+				return $home;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Returns the latest stable release, read from GitHub at most twice a day.
 	 *
 	 * A failed read is remembered for an hour, so an unreachable GitHub does not slow the admin down.
@@ -228,7 +249,7 @@ final class Updater {
 			$name = is_array( $asset ) && is_string( $asset['name'] ?? null ) ? $asset['name'] : '';
 			$url  = is_array( $asset ) && is_string( $asset['browser_download_url'] ?? null ) ? $asset['browser_download_url'] : '';
 
-			if ( self::UPDATE_URI . '/releases/download/' . $tag . '/' . $name !== $url ) {
+			if ( '' === self::home( $url ) || self::home( $url ) . '/releases/download/' . $tag . '/' . $name !== $url ) {
 				continue;
 			}
 

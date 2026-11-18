@@ -715,7 +715,7 @@ if ( $demo ) {
 $file     = plugin_basename( SFFILTERS_PLUGIN_FILE );
 $headers  = get_plugin_data( SFFILTERS_PLUGIN_FILE, false, false );
 $uri      = \Starfiniti\Filters\Updater::UPDATE_URI;
-$api      = 'https://api.github.com/repos/Starfiniti/starfiniti-filters/releases/latest';
+$api      = 'https://api.github.com/repos/dejankletecki/starfiniti-wp-filters/releases/latest';
 $zip_name = 'starfiniti-filters-9.9.9.zip';
 $zip_url  = $uri . '/releases/download/v9.9.9/' . $zip_name;
 $zip_body = 'not really a zip, only bytes to checksum';
@@ -793,7 +793,13 @@ $check( 'updates: the installed version is not offered again', false === $ask( $
 $check( 'updates: a pre-release is not offered', false === $ask( $release( array( 'prerelease' => true ) ) ) );
 $check( 'updates: a draft is not offered', false === $ask( $release( array( 'draft' => true ) ) ) );
 $check( 'updates: a tag that is not a version is not offered', false === $ask( $release( array( 'tag_name' => 'nightly' ) ) ) );
-$check( 'updates: a package from another repository is not offered', false === $ask( $release( array(), array( 'browser_download_url' => 'https://github.com/someone-else/starfiniti-filters/releases/download/v9.9.9/' . $zip_name ) ) ) );
+$check( 'updates: a package from another repository is not offered', false === $ask( $release( array(), array( 'browser_download_url' => 'https://github.com/someone-else/starfiniti-wp-filters/releases/download/v9.9.9/' . $zip_name ) ) ) );
+$check( 'updates: a package from the retired address is not offered', false === $ask( $release( array(), array( 'browser_download_url' => 'https://github.com/Starfiniti/starfiniti-filters/releases/download/v9.9.9/' . $zip_name ) ) ) );
+
+$moved  = 'https://github.com/Starfiniti/starfiniti-wp-filters/releases/download/v9.9.9/' . $zip_name;
+$update = $ask( $release( array(), array( 'browser_download_url' => $moved ) ) );
+$check( 'updates: a release is still offered once the repository has moved to the Starfiniti organization', is_array( $update ) && $moved === $update['package'], $update );
+
 $check( 'updates: a release without a checksum is not offered', false === $ask( $release( array(), array( 'digest' => null ) ) ) );
 $check( 'updates: an answer that is not a release is not offered', false === $ask( '{"message":"API rate limit exceeded"}' ) );
 

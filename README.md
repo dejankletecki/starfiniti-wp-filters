@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.5.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.6.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -29,7 +29,7 @@ Not yet: radio buttons and select as filter controls, product lists that run a q
 
 ## Install and updates
 
-Download `starfiniti-filters-<version>.zip` from the [latest release](https://github.com/Starfiniti/starfiniti-filters/releases/latest) and upload it under **Plugins > Add New > Upload Plugin**.
+Download `starfiniti-filters-<version>.zip` from the [latest release](https://github.com/dejankletecki/starfiniti-wp-filters/releases/latest) and upload it under **Plugins > Add New > Upload Plugin**.
 
 From then on the plugin updates like any other. WordPress shows a new release on the Plugins and Updates screens, with its notes under "View details", and auto-updates can be switched on for it. The plugin reads the public release data from GitHub at most twice a day and sends nothing about the store.
 
