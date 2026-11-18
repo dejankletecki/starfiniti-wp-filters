@@ -222,6 +222,23 @@ async function propertyChecks( properties ) {
 	check( 'limit: a list without a limit is not folded', ! shop.html.includes( 'sffilters-rest' ) );
 	check( 'swatches: the checkbox stays for the keyboard, the count for screen readers', /\.sffilters-swatch input\[type="checkbox"\],\s*\.sffilters-swatch \.sffilters-option__count \{[^}]*clip-path: inset\(50%\);/.test( readFileSync( 'assets/filters.css', 'utf8' ) ) );
 
+	// The horizontal panel: a row of buttons above the products. The demo store has the vertical panel too.
+	const row = await page( '/shop/?sffilters_test_horizontal=1&sf_brand=anker,xiaomi&sf_price=50-200' );
+	const bare = await page( '/shop/?sffilters_test_horizontal=1' );
+	const flat = row.html.match( /<form class="sffilters-panel sffilters-panel--horizontal"[\s\S]*?<\/form>/ )?.[ 0 ] ?? '';
+	const drop = ( html, param ) => html.match( new RegExp( `<details class="sffilters-drop[^"]*" data-sffilters-branch="drop:${ param }" name="sffilters-drop-\\d+"><summary class="sffilters-drop__toggle">([\\s\\S]*?)</summary>` ) );
+
+	check( 'horizontal: the panel is a row above the results, outside what the script swaps', '' !== flat && row.html.indexOf( 'sffilters-panel--horizontal' ) < row.html.indexOf( 'data-sffilters-results' ) );
+	check( 'horizontal: every filter is a button that opens it', drop( flat, 'sf_cat' )?.[ 1 ] === 'Categories' && flat.includes( '<div class="sffilters-drop__body"><fieldset class="sffilters-filter sffilters-filter--options" data-sffilters-param="sf_cat">' ), drop( flat, 'sf_cat' )?.[ 0 ] );
+	check( 'horizontal: a button says how many values are chosen', />Brands <span class="sffilters-drop__count">2<\/span>$/.test( '>' + ( drop( flat, 'sf_brand' )?.[ 1 ] ?? '' ) ) && drop( flat, 'sf_brand' )?.[ 0 ].includes( 'sffilters-drop sffilters-drop--active' ), drop( flat, 'sf_brand' )?.[ 0 ] );
+	check( 'horizontal: a chosen range counts as one', ( drop( flat, 'sf_price' )?.[ 1 ] ?? '' ).endsWith( '<span class="sffilters-drop__count">1</span>' ), drop( flat, 'sf_price' )?.[ 0 ] );
+	check( 'horizontal: a filter that is one checkbox stays a checkbox in the row', /<div class="sffilters-filter sffilters-filter--toggle" data-sffilters-param="sf_sale">/.test( flat ) && ! drop( flat, 'sf_sale' ) );
+	check( 'horizontal: the buttons of one panel share a name, so one opens at a time', new Set( [ ...flat.matchAll( /name="(sffilters-drop-\d+)"/g ) ].map( ( found ) => found[ 1 ] ) ).size === 1 );
+	check( 'horizontal: nothing is marked while no filter is in use', ! bare.html.includes( 'sffilters-drop--active' ) && ! bare.html.includes( 'sffilters-drop__count' ) );
+	check( 'horizontal: the vertical panel has no buttons', ! shop.html.includes( 'sffilters-drop' ) );
+	check( 'horizontal: the filter under a button is laid over the page, and in the drawer it is a plain list', /\.sffilters-drop__body \{[^}]*position: absolute;/.test( styles ) && /\.sffilters-drawer \.sffilters-drop__body \{[^}]*position: static;/.test( styles ) );
+	check( 'horizontal: the script closes a filter on a click outside it and keeps the open one open', /\.sffilters-drop\[open\]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) && /opened\[ panel\.getAttribute\( 'data-sffilters-panel' \) \]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) );
+
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

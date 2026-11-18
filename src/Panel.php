@@ -231,8 +231,14 @@ final class Panel {
 
 	/**
 	 * Returns the panel, or an empty string when the page has no product list to filter.
+	 *
+	 * With `layout="horizontal"` the filters are a row of buttons, each opening its filter under it. The row
+	 * belongs above the products, outside the container the script swaps.
+	 *
+	 * @param array|string $atts Shortcode attributes: `layout`, `horizontal` or left out for the vertical panel.
 	 */
-	public function render(): string {
+	public function render( $atts = array() ): string {
+		$horizontal = is_array( $atts ) && 'horizontal' === ( $atts['layout'] ?? '' );
 		$plugin = Plugin::instance();
 		$base   = $plugin->base_query_vars();
 
@@ -262,9 +268,16 @@ final class Panel {
 				 * @param string $slug   Slug of the filter.
 				 * @param Filter $filter The filter.
 				 */
-				$facet = (array) apply_filters( 'sffilters_facet', $filter->facet( $this->ids_sql[ $key ], $state->values( $slug ) ), $slug, $filter );
+				$values = $state->values( $slug );
+				$facet  = (array) apply_filters( 'sffilters_facet', $filter->facet( $this->ids_sql[ $key ], $values ), $slug, $filter );
+				$group  = $this->group( $filter, $facet );
 
-				$groups .= $this->group( $filter, $facet );
+				// A range is one choice, a list as many as are ticked.
+				$chosen = array() === $values ? 0 : ( array_is_list( $values ) ? count( $values ) : 1 );
+
+				$groups .= $horizontal && '' !== $group && 'toggle' !== ( $facet['kind'] ?? '' )
+					? $this->drop( $filter, $group, $chosen, $this->count + 1 )
+					: $group;
 			}
 		}
 
@@ -289,14 +302,36 @@ final class Panel {
 			: '';
 
 		return sprintf(
-			'<form class="sffilters-panel" method="get" action="%1$s" aria-label="%2$s" data-sffilters-panel="%7$d">%3$s%4$s<noscript><button type="submit" class="sffilters-apply button">%5$s</button></noscript>%6$s</form>',
+			'<form class="sffilters-panel%8$s" method="get" action="%1$s" aria-label="%2$s" data-sffilters-panel="%7$d">%3$s%4$s<noscript><button type="submit" class="sffilters-apply button">%5$s</button></noscript>%6$s</form>',
 			esc_url( $parts[0] ),
 			esc_attr__( 'Product filters', 'starfiniti-filters' ),
 			$hidden, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by wc_query_string_form_fields().
 			$groups, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped where it is built.
 			esc_html__( 'Apply filters', 'starfiniti-filters' ),
 			$clear, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
-			++$this->count
+			++$this->count,
+			$horizontal ? ' sffilters-panel--horizontal' : ''
+		);
+	}
+
+	/**
+	 * Wraps one filter of the horizontal panel in a button that opens it. It is a `details` element, so it
+	 * opens without the script, and the ones of one panel share a name, so opening one closes the others.
+	 *
+	 * @param Filter $filter The filter.
+	 * @param string $group  The rendered filter.
+	 * @param int    $chosen Number of choices made in it.
+	 * @param int    $panel  Number of the panel on this page.
+	 */
+	private function drop( Filter $filter, string $group, int $chosen, int $panel ): string {
+		return sprintf(
+			'<details class="sffilters-drop%1$s" data-sffilters-branch="drop:%2$s" name="sffilters-drop-%3$d"><summary class="sffilters-drop__toggle">%4$s%5$s</summary><div class="sffilters-drop__body">%6$s</div></details>',
+			$chosen > 0 ? ' sffilters-drop--active' : '',
+			esc_attr( $filter->param() ),
+			$panel,
+			esc_html( $filter->label() ),
+			$chosen > 0 ? ' <span class="sffilters-drop__count">' . esc_html( number_format_i18n( $chosen ) ) . '</span>' : '',
+			$group
 		);
 	}
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.10.0
+
+- Added the horizontal panel, `[sffilters layout="horizontal"]`: a row of buttons above the products, each opening its filter under it. A button says how many values are chosen, one filter is open at a time, and it closes on a click outside it or on Escape. In the drawer on small screens the filters are a list.
+- A filter the shopper opened stays open after the list is filtered also where the panel sits inside the results.
+
 ## 1.9.0
 
 - The page links under the products are now drawn by the plugin, the same in every store: a row of boxes with the page being viewed filled in, for the WooCommerce loop, the Breakdance post loop and Bricks. The font is the one of the page, the corners follow the buttons of the site, and the colour is the brand colour of the page builder. A store sets another colour with `--sffilters-page` (and `--sffilters-page-text`) on `:root` or on `.sffilters-results`. Before, each builder drew them its own way, and where a store had styled the page links of its old filter plugin, they came out as bare text.

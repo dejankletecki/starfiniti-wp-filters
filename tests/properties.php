@@ -78,8 +78,21 @@ add_filter(
  * `sffilters_test_share` adds a tag filter that shows from that share of the listed products (0 for always),
  * `sffilters_test_facet` leaves "Out of stock" out of the availability filter,
  * `sffilters_test_ranges` shows the price filter as ready-made ranges,
- * `sffilters_test_swatches` shows the brands as swatches, the first one and the rest behind "more".
+ * `sffilters_test_swatches` shows the brands as swatches, the first one and the rest behind "more",
+ * `sffilters_test_horizontal` adds the horizontal panel above the products.
  */
+add_action(
+	'woocommerce_before_shop_loop',
+	static function (): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper, reads no value.
+		if ( isset( $_GET['sffilters_test_horizontal'] ) ) {
+			echo do_shortcode( '[sffilters layout="horizontal"]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The panel escapes its own output.
+		}
+	},
+	// Before the wrapper of the results opens, so the script swaps the panel on its own.
+	-2000
+);
+
 add_filter(
 	'sffilters_filter_definitions',
 	static function ( $definitions ) {

@@ -505,20 +505,28 @@
 			return false;
 		}
 
+		var opened = {};
+
+		// What the shopper opened stays open in the new panel: branches, folds and dropdowns. Read before
+		// anything is replaced, because a panel may sit inside the results.
+		document.querySelectorAll( PANEL ).forEach( function ( panel ) {
+			var open = opened[ panel.getAttribute( 'data-sffilters-panel' ) ] = {};
+
+			panel.querySelectorAll( '[data-sffilters-branch][open]' ).forEach( function ( branch ) {
+				open[ branchKey( branch ) ] = true;
+			} );
+		} );
+
 		current.replaceWith( document.importNode( next, true ) );
 
 		document.querySelectorAll( PANEL ).forEach( function ( panel ) {
-			var fresh = findPanel( doc, panel.getAttribute( 'data-sffilters-panel' ) );
-			var open = {};
+			var number = panel.getAttribute( 'data-sffilters-panel' );
+			var fresh = findPanel( doc, number );
+			var open = opened[ number ] || {};
 
 			if ( ! fresh ) {
 				return;
 			}
-
-			// The branches the shopper opened stay open in the new panel.
-			panel.querySelectorAll( '[data-sffilters-branch][open]' ).forEach( function ( branch ) {
-				open[ branchKey( branch ) ] = true;
-			} );
 
 			fresh = document.importNode( fresh, true );
 			panel.replaceWith( fresh );
@@ -621,6 +629,38 @@
 			load( panelUrl( event.target ), { push: true } );
 		}
 	} );
+
+	// A dropdown of the horizontal panel closes on a click outside it and on Escape. In the drawer the
+	// dropdowns are a plain list, and Escape belongs to the dialog.
+	document.addEventListener( 'click', function ( event ) {
+		var inside = event.target.closest ? event.target.closest( '.sffilters-drop' ) : null;
+
+		document.querySelectorAll( '.sffilters-drop[open]' ).forEach( function ( drop ) {
+			if ( drop !== inside && ! drop.closest( '.sffilters-drawer' ) ) {
+				drop.open = false;
+			}
+		} );
+	} );
+
+	document.addEventListener( 'keydown', function ( event ) {
+		var drop = 'Escape' === event.key && event.target.closest ? event.target.closest( '.sffilters-drop[open]' ) : null;
+
+		if ( drop && ! drop.closest( '.sffilters-drawer' ) ) {
+			drop.open = false;
+			drop.querySelector( 'summary' ).focus();
+		}
+	} );
+
+	// A dropdown near the right edge opens towards the left, so it stays on the screen.
+	document.addEventListener( 'toggle', function ( event ) {
+		var drop = event.target;
+		var body = drop.matches && drop.matches( '.sffilters-drop' ) && drop.open ? drop.querySelector( '.sffilters-drop__body' ) : null;
+
+		if ( body ) {
+			drop.classList.remove( 'sffilters-drop--end' );
+			drop.classList.toggle( 'sffilters-drop--end', body.getBoundingClientRect().right > document.documentElement.clientWidth - 8 );
+		}
+	}, true );
 
 	// A chosen range is given up by choosing it again. A radio button does not say so with a change.
 	document.addEventListener( 'click', function ( event ) {

@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.9.0 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.10.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -22,6 +22,7 @@ Working now:
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
 - Checkboxes drawn the same in every browser, in the accent colour of the store
 - Works with the Breakdance "Shop Page" element
+- Horizontal panel: a row of buttons above the products, each opening its filter under it
 - Page links under the products drawn the same in every store, in the colours and the font of the site
 - Works with LiteSpeed Cache: its CSS and JS optimization leaves the panel alone
 - Works with product archives a page builder draws itself from the main query: the Breakdance post loop and a Bricks query loop set as the main query
@@ -47,6 +48,15 @@ A store that blocks outgoing requests with `WP_HTTP_BLOCK_EXTERNAL` has to allow
 Put the `[sffilters]` shortcode where the panel should appear, for example in a sidebar widget or a page builder template of the shop page.
 
 Choose the filters under **WooCommerce > Filters**: add a filter for any category, brand, tag or attribute, or for price, availability and sale, set its title and order, and pick how the product list continues (page links, "Load more" or infinite scroll). Until you save, the panel shows categories, brands, price, availability and on sale.
+
+The panel comes in two layouts. `[sffilters]` is the vertical panel, for a sidebar. `[sffilters layout="horizontal"]` is a row of buttons, one per filter: a button opens its filter under it and says how many values are chosen. Place the row above the products, outside the container with the product list. Where the theme draws the WooCommerce loop, a store can add it with a hook:
+
+```php
+// Before the wrapper around the results opens (priority -1000), so the row is not part of what is swapped.
+add_action( 'woocommerce_before_shop_loop', static fn() => print do_shortcode( '[sffilters layout="horizontal"]' ), -2000 );
+```
+
+On small screens both layouts open in the same drawer, where the filters are a list one under the other.
 
 A taxonomy filter shows its terms in one of four ways. **Checkboxes** filter the current list and keep the choice in the URL. On a category page they offer every other category the listed products are in, so the shopper can cross two categories. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on. **Links, one level at a time** does the same for a large category tree: the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up. Where the whole tree is shown, as checkboxes or as links, the subcategories are folded behind an arrow next to their category. A branch is open from the start when it holds a chosen value or the category being viewed.
 
