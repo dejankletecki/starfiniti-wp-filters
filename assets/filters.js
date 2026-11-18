@@ -111,7 +111,7 @@
 			return {
 				panel: panel.getAttribute( 'data-sffilters-panel' ),
 				key: controlKey( active ),
-				value: 'checkbox' === active.type ? active.value : null,
+				value: 'checkbox' === active.type || 'radio' === active.type ? active.value : null,
 			};
 		}
 
@@ -619,6 +619,17 @@
 		if ( event.target.matches( PANEL ) ) {
 			event.preventDefault();
 			load( panelUrl( event.target ), { push: true } );
+		}
+	} );
+
+	// A chosen range is given up by choosing it again. A radio button does not say so with a change.
+	document.addEventListener( 'click', function ( event ) {
+		var chosen = event.target.matches && event.target.matches( 'input[type="radio"][data-sffilters-on]' ) ? event.target : null;
+		var form = chosen ? chosen.closest( PANEL ) : null;
+
+		if ( form ) {
+			chosen.checked = false;
+			load( panelUrl( form ), { push: true } );
 		}
 	} );
 

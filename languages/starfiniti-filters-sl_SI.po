@@ -255,3 +255,9 @@ msgstr "Filter %s pokaži le, ko ima vrednost vsaj tolikšen odstotek prikazanih
 #. translators: %s: name of a category that has subcategories.
 msgid "%s: subcategories"
 msgstr "%s: podkategorije"
+
+msgid "Slider and fields"
+msgstr "Drsnik in polji"
+
+msgid "Ready-made ranges"
+msgstr "Pripravljeni razredi"

@@ -42,11 +42,18 @@
 		const display = row.querySelector( '[data-sffilters-display]' );
 
 		if ( display && ! ( 'taxonomy' in chosen.dataset ) ) {
-			const hidden = document.createElement( 'input' );
+			const prices = document.querySelector( '[data-sffilters-price-template]' );
+			let hidden = document.createElement( 'input' );
 
 			hidden.type = 'hidden';
 			hidden.name = display.name;
 			hidden.value = '';
+
+			// The price filter picks between the slider and ready-made ranges.
+			if ( 'price' === chosen.value && prices ) {
+				hidden = prices.content.firstElementChild.cloneNode( true );
+			}
+
 			display.replaceWith( hidden );
 
 			// The share of listed products belongs to taxonomies as well.

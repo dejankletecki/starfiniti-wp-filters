@@ -210,6 +210,7 @@ final class SettingsPage {
 
 				<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in row(). ?>
 				<template data-sffilters-template><?php echo $this->row( '', '', '', '%s', false, true, '', 0.0 ); ?></template>
+				<template data-sffilters-price-template><?php echo $this->price_display( '%s', '' ); ?></template>
 
 				<p class="sffilters-admin__add">
 					<label for="sffilters-add"><?php esc_html_e( 'Add a filter', 'starfiniti-filters' ); ?></label>
@@ -246,6 +247,23 @@ final class SettingsPage {
 	}
 
 	/**
+	 * Returns the choice between the slider and ready-made ranges for the price filter.
+	 *
+	 * @param string $name    Default title of the price filter.
+	 * @param string $display `ranges` when the filter offers ready-made ranges.
+	 */
+	private function price_display( string $name, string $display ): string {
+		return sprintf(
+			'<select name="sffilters[display][]" aria-label="%1$s" data-sffilters-price-display><option value="">%2$s</option><option value="ranges"%3$s>%4$s</option></select>',
+			/* translators: %s: filter name, for example Categories. */
+			esc_attr( sprintf( __( 'Display of the %s filter', 'starfiniti-filters' ), $name ) ),
+			esc_html__( 'Slider and fields', 'starfiniti-filters' ),
+			selected( $display, Settings::PRICE_DISPLAY, false ),
+			esc_html__( 'Ready-made ranges', 'starfiniti-filters' )
+		);
+	}
+
+	/**
 	 * Returns one row of the filters table. The script fills the template row, which has no key, when a filter is added.
 	 *
 	 * @param string $key       Short source name, see Settings::key().
@@ -259,6 +277,10 @@ final class SettingsPage {
 	 */
 	private function row( string $key, string $slug, string $label, string $name, bool $attribute, bool $taxonomy, string $display, float $share ): string {
 		$shown = '<input type="hidden" name="sffilters[display][]" value=""><input type="hidden" name="sffilters[share][]" value="">';
+
+		if ( 'price' === $key ) {
+			$shown = $this->price_display( $name, $display ) . '<input type="hidden" name="sffilters[share][]" value="">';
+		}
 
 		if ( $taxonomy ) {
 			$shown = sprintf(

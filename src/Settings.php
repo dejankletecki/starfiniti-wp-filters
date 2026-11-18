@@ -29,6 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * filters by a product property of the store (see Properties), an optional `label` and, for taxonomy
  * filters, `display` set to `links` or `level` when the terms lead to their own pages, or `share` (above 0,
  * up to 1) to show a checkbox filter only when at least that share of the listed products has a term.
+ * The price filter takes `display` set to `ranges` to offer ready-made ranges and no slider.
  * When reading input, `source` may also name the taxonomy or the property directly, for example `pa_color`.
  */
 final class Settings {
@@ -42,6 +43,11 @@ final class Settings {
 	 * terms' own pages, `level` one level at a time.
 	 */
 	public const DISPLAYS = array( 'links', 'level' );
+
+	/**
+	 * How the price filter can show besides the slider with two fields: ready-made ranges to pick one from.
+	 */
+	public const PRICE_DISPLAY = 'ranges';
 
 	private const SOURCES = array( 'price', 'stock', 'sale' );
 
@@ -208,7 +214,7 @@ final class Settings {
 				'source'        => $key,
 				'label'         => $definition['label'] ?? '',
 				'default_label' => self::default_label( $definition['source'], self::key( $definition ) ),
-				'display'       => 'taxonomy' === $definition['source'] ? ( $definition['display'] ?? 'checkboxes' ) : '',
+				'display'       => 'taxonomy' === $definition['source'] ? ( $definition['display'] ?? 'checkboxes' ) : ( $definition['display'] ?? '' ),
 				'share'         => (float) ( $definition['share'] ?? 0 ),
 				'param'         => 'sf_' . $definition['slug'],
 			);
@@ -409,6 +415,10 @@ final class Settings {
 			}
 		}
 
+		if ( 'price' === $source && self::PRICE_DISPLAY === self::text( $definition, 'display' ) ) {
+			$clean['display'] = self::PRICE_DISPLAY;
+		}
+
 		if ( '' !== $label ) {
 			$clean['label'] = $label;
 		}
@@ -521,7 +531,7 @@ final class Settings {
 					: new TaxonomyFilter( $slug, $label, Properties::taxonomy( $key ), '', $property['share'] );
 
 			case 'price':
-				return new PriceFilter( $slug, $label );
+				return new PriceFilter( $slug, $label, self::PRICE_DISPLAY === ( $definition['display'] ?? '' ) );
 
 			case 'stock':
 				return new StockFilter( $slug, $label );

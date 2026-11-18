@@ -76,8 +76,23 @@ add_filter(
 /*
  * Two more hooks a store may add, switched on from the address for the checks of the shop pages:
  * `sffilters_test_share` adds a tag filter that shows from that share of the listed products (0 for always),
- * `sffilters_test_facet` leaves "Out of stock" out of the availability filter.
+ * `sffilters_test_facet` leaves "Out of stock" out of the availability filter,
+ * `sffilters_test_ranges` shows the price filter as ready-made ranges.
  */
+add_filter(
+	'sffilters_filter_definitions',
+	static function ( $definitions ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Test helper, reads no value.
+		foreach ( isset( $_GET['sffilters_test_ranges'] ) && is_array( $definitions ) ? array_keys( $definitions ) : array() as $index ) {
+			if ( 'price' === ( $definitions[ $index ]['source'] ?? '' ) ) {
+				$definitions[ $index ]['display'] = 'ranges';
+			}
+		}
+
+		return $definitions;
+	}
+);
+
 add_filter(
 	'sffilters_filter_definitions',
 	static function ( $definitions ) {

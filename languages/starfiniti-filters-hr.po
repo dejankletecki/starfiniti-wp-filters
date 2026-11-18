@@ -254,3 +254,9 @@ msgstr "Filtar %s prikaži samo kad barem ovoliki postotak prikazanih proizvoda 
 #. translators: %s: name of a category that has subcategories.
 msgid "%s: subcategories"
 msgstr "%s: potkategorije"
+
+msgid "Slider and fields"
+msgstr "Klizač i polja"
+
+msgid "Ready-made ranges"
+msgstr "Gotovi rasponi"

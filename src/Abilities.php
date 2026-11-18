@@ -48,8 +48,8 @@ final class Abilities {
 				),
 				'display' => array(
 					'type'        => 'string',
-					'enum'        => array( 'checkboxes', 'links', 'level', '' ),
-					'description' => 'For taxonomies. checkboxes filters the current list. links makes each term a link to its own page, for example the category page. level does the same one level at a time: the subcategories of the page being viewed, or the categories beside it.',
+					'enum'        => array( 'checkboxes', 'links', 'level', 'slider', 'ranges', '' ),
+					'description' => 'For the price filter: slider shows a slider with two fields, ranges offers ready-made ranges to pick one from. For taxonomies. checkboxes filters the current list. links makes each term a link to its own page, for example the category page. level does the same one level at a time: the subcategories of the page being viewed, or the categories beside it.',
 				),
 				'share'   => array(
 					'type'        => 'number',

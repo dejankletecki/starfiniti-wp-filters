@@ -187,6 +187,19 @@ async function propertyChecks( properties ) {
 	check( 'share: it is left out where too few of the listed products have one', mostly.status === 200 && ! mostly.html.includes( 'name="sf_tag[]"' ) );
 	check( 'share: it shows where enough of them do', some.html.includes( 'name="sf_tag[]"' ) );
 
+	// Ready-made price ranges.
+	const banded = await page( '/shop/?sffilters_test_ranges=1' );
+	const band = banded.html.match( /<input type="radio" name="sf_price" value="([^"]+)"> <span class="sffilters-option__label">[^<]*<\/span> <span class="sffilters-option__count">(\d+)/ );
+	const picked = band ? await page( `/shop/?sffilters_test_ranges=1&sf_price=${ band[ 1 ] }` ) : { html: '' };
+	const styles = readFileSync( 'assets/filters.css', 'utf8' );
+
+	check( 'ranges: the price filter offers radio buttons and no fields', band !== null && ! banded.html.includes( 'name="sf_price[min]"' ) && shop.html.includes( 'name="sf_price[min]"' ) );
+	check( 'ranges: choosing one lists what it counted', band !== null && total( picked.html ) === Number( band[ 2 ] ), band ? `the range ${ band[ 1 ] } says ${ band[ 2 ] }, the list has ${ total( picked.html ) }` : 'no range found' );
+	check( 'ranges: the chosen one is marked for the script', band !== null && picked.html.includes( `value="${ band[ 1 ] }" checked data-sffilters-on>` ) );
+	check( 'ranges: the chosen one can be removed above the products', /sffilters-chip/.test( picked.html ) );
+	check( 'ranges: radio buttons are drawn round and sit on the first line', /input\[type="radio"\] \{[^}]*border-radius: 50%;[^}]*margin-top: calc\(\(1lh - 1\.25em\) \/ 2\);/.test( styles ) );
+	check( 'ranges: choosing the chosen range again gives it up', /input\[type="radio"\]\[data-sffilters-on\]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) );
+
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

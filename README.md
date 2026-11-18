@@ -4,7 +4,7 @@ Product filters for the WooCommerce shop your theme already renders. The plugin 
 
 ## Status
 
-Version 1.6.2 filters the WooCommerce shop, category, tag and brand pages.
+Version 1.7.0 filters the WooCommerce shop, category, tag and brand pages.
 
 Working now:
 
@@ -15,6 +15,7 @@ Working now:
 - Selected filters above the products, each with a remove button, and "Clear all"
 - Mobile panel: a "Filters" button opens the panel as a drawer on screens up to 768px, or up to the width the store sets
 - Price slider with two handles
+- Price as ready-made ranges to pick one from, worked out from the prices of the listed products
 - Page links, "Load more" or infinite scroll
 - Categories (or any taxonomy) as checkboxes that filter the list, or as links to their own pages: the whole tree, or one level at a time
 - Checkboxes drawn the same in every browser, in the accent colour of the store
@@ -44,6 +45,8 @@ Put the `[sffilters]` shortcode where the panel should appear, for example in a 
 Choose the filters under **WooCommerce > Filters**: add a filter for any category, brand, tag or attribute, or for price, availability and sale, set its title and order, and pick how the product list continues (page links, "Load more" or infinite scroll). Until you save, the panel shows categories, brands, price, availability and on sale.
 
 A taxonomy filter shows its terms in one of three ways. **Checkboxes** filter the current list and keep the choice in the URL. On a category page they offer every other category the listed products are in, so the shopper can cross two categories. **Links to their own pages** turn every term into a link to its archive, for example the category page, with a link back to all products. Use links when the category pages should stay the pages people and search engines land on. **Links, one level at a time** does the same for a large category tree: the shop lists the top categories, a category lists its subcategories, and a category without subcategories lists the ones beside it, with a link one level up. Where the whole tree is shown, as checkboxes or as links, the subcategories are folded behind an arrow next to their category. A branch is open from the start when it holds a chosen value or the category being viewed.
+
+The price filter shows in one of two ways. **Slider and fields** lets the shopper set both ends of the range. **Ready-made ranges** offers up to four ranges with the number of products in each, for example "Up to 13 €", "13 € – 15 €" and "From 15 €". The ranges are cut at the prices a quarter, a half and three quarters of the way through the listed products, rounded to two digits, so they follow the list as other filters narrow it. Choosing the chosen range again gives it up.
 
 ### Look
 
@@ -126,6 +129,7 @@ wp sffilters list
 wp sffilters sources
 wp sffilters add pa_color --label="Colour" --position=2
 wp sffilters move price 1
+wp sffilters display price ranges
 wp sffilters label cat "Product type"
 wp sffilters display cat links
 wp sffilters display cat level

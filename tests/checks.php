@@ -441,6 +441,34 @@ $prices = array_map( static fn( $id ) => (float) wc_get_product( $id )->get_pric
 $range  = $facet( 'price', array( 'sf_brand' => 'anker' ) );
 $check( 'counts: price range of a chosen brand', array() !== $prices && floor( min( $prices ) ) === (float) ( $range['min'] ?? -1 ) && ceil( max( $prices ) ) === (float) ( $range['max'] ?? -1 ), $range );
 
+// Ready-made price ranges: each says what choosing it lists, and together they hold every product.
+$banded  = new \Starfiniti\Filters\Filter\PriceFilter( 'price', 'Price', true );
+$listed  = \Starfiniti\Filters\Query::ids_sql( $base );
+$bands   = $banded->facet( $listed, array() )['options'] ?? array();
+$within  = static function ( string $value ) use ( $banded, $expect ): int {
+	$range = $banded->parse( $value );
+
+	return count( $expect( static fn( $p ) => ( ! isset( $range['min'] ) || (float) $p->get_price() >= $range['min'] ) && ( ! isset( $range['max'] ) || (float) $p->get_price() <= $range['max'] ) ) );
+};
+$counted = array() !== $bands;
+
+foreach ( $bands as $band ) {
+	$counted = $counted && $within( $band['value'] ) === $band['count'] && ! $band['selected'];
+}
+
+$chosen = static fn( array $options ): array => array_values( array_column( array_filter( $options, static fn( $option ) => $option['selected'] ), 'value' ) );
+$second = (string) ( $bands[1]['value'] ?? '' );
+$picked = $banded->facet( $listed, $banded->parse( $second ) )['options'] ?? array();
+$odd    = $banded->facet( $listed, $banded->parse( '1-2' ) )['options'] ?? array();
+
+$check( 'ranges: the price filter offers two to four ranges', count( $bands ) >= 2 && count( $bands ) <= 4, $bands );
+$check( 'ranges: every range says how many products choosing it lists', $counted, $bands );
+$check( 'ranges: the first is open below and the last open above', str_starts_with( (string) ( $bands[0]['value'] ?? 'x' ), '-' ) && str_ends_with( (string) ( $bands[ count( $bands ) - 1 ]['value'] ?? 'x' ), '-' ), array_column( $bands, 'value' ) );
+$check( 'ranges: together they hold every product', array_sum( array_column( $bands, 'count' ) ) >= count( $all ), array_column( $bands, 'count' ) );
+$check( 'ranges: the chosen range is marked, the others stay', array( $second ) === $chosen( $picked ) && count( $picked ) === count( $bands ), $picked );
+$check( 'ranges: a range that is none of the ready-made ones stays listed and chosen', array( '1-2' ) === $chosen( $odd ), $odd );
+$check( 'ranges: the slider is the default', 'range' === ( ( new \Starfiniti\Filters\Filter\PriceFilter( 'price', 'Price' ) )->facet( $listed, array() )['kind'] ?? '' ) );
+
 $stock = $flatten( $facet( 'stock', array( 'sf_sale' => '1' ) )['options'] ?? array() );
 $check( 'counts: stock of products on sale', ( $stock['instock'] ?? 0 ) === count( $expect( static fn( $p ) => $p->is_on_sale() && 'instock' === $p->get_stock_status() ) ), $stock );
 
@@ -763,6 +791,26 @@ $check( 'settings: a filter shown as links reads nothing from the URL', false !=
 
 $export = \Starfiniti\Filters\Settings::export();
 $check( 'settings: a taxonomy can be shown one level at a time', 'level' === ( $export['filters'][0]['display'] ?? '' ) && 'checkboxes' === ( $export['filters'][1]['display'] ?? '' ), $export['filters'] );
+
+\Starfiniti\Filters\Settings::save(
+	array(
+		'filters' => array(
+			array(
+				'source'  => 'price',
+				'display' => 'ranges',
+			),
+			array(
+				'source'  => 'product_cat',
+				'display' => 'ranges',
+			),
+		),
+	)
+);
+
+$export = \Starfiniti\Filters\Settings::export();
+$ranged = \Starfiniti\Filters\Settings::filters();
+$check( 'settings: only the price filter can offer ready-made ranges', 'ranges' === ( $export['filters'][0]['display'] ?? '' ) && 'checkboxes' === ( $export['filters'][1]['display'] ?? '' ), $export['filters'] );
+$check( 'settings: a price filter saved with ranges offers them', 'choices' === ( reset( $ranged )->facet( $listed, array() )['kind'] ?? '' ) );
 
 \Starfiniti\Filters\Settings::save( array( 'filters' => array() ) );
 $check( 'settings: an empty saved list means no filters', array() === \Starfiniti\Filters\Settings::filters() );

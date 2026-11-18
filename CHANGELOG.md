@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.0
+
+- The price filter can show as ready-made ranges to pick one from, in place of the slider: set "Ready-made ranges" on the settings page, or run `wp sffilters display price ranges`. The panel offers up to four ranges with the number of products in each, cut at the prices a quarter, a half and three quarters of the way through the listed products. Choosing the chosen range again gives it up.
+
 ## 1.6.2
 
 - Fixed the panel slowing down with the size of the category tree. The plugin looked every category up on its own; on a shop with 19,000 categories that was 18,920 database queries and more than two seconds on every shop page. The parents of all categories are now read with one query, and "Links, one level at a time" loads only the categories of the level it shows.

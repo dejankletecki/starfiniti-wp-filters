@@ -44,26 +44,33 @@ abstract class RangeFilter extends Filter {
 	}
 
 	public function selected( array $values ): array {
-		$min = isset( $values['min'] ) ? $this->text( (float) $values['min'] ) : null;
-		$max = isset( $values['max'] ) ? $this->text( (float) $values['max'] ) : null;
-
-		if ( null !== $min && null !== $max ) {
-			/* translators: 1: lowest price, 2: highest price. */
-			$label = sprintf( _x( '%1$s – %2$s', 'price range', 'starfiniti-filters' ), $min, $max );
-		} elseif ( null !== $min ) {
-			/* translators: %s: lowest price. */
-			$label = sprintf( __( 'From %s', 'starfiniti-filters' ), $min );
-		} else {
-			/* translators: %s: highest price. */
-			$label = sprintf( __( 'Up to %s', 'starfiniti-filters' ), $max );
-		}
-
 		return array(
 			array(
-				'label'  => $this->chip( $label ),
+				'label'  => $this->chip( $this->words( $values['min'] ?? null, $values['max'] ?? null ) ),
 				'values' => array(),
 			),
 		);
+	}
+
+	/**
+	 * Says a range in words, for example `50 € – 200 €`, `From 50 €` or `Up to 200 €`.
+	 *
+	 * @param float|null $min Lower end, or null when the range is open below.
+	 * @param float|null $max Upper end, or null when the range is open above.
+	 */
+	protected function words( ?float $min, ?float $max ): string {
+		if ( null !== $min && null !== $max ) {
+			/* translators: 1: lowest price, 2: highest price. */
+			return sprintf( _x( '%1$s – %2$s', 'price range', 'starfiniti-filters' ), $this->text( $min ), $this->text( $max ) );
+		}
+
+		if ( null !== $min ) {
+			/* translators: %s: lowest price. */
+			return sprintf( __( 'From %s', 'starfiniti-filters' ), $this->text( $min ) );
+		}
+
+		/* translators: %s: highest price. */
+		return sprintf( __( 'Up to %s', 'starfiniti-filters' ), $this->text( (float) $max ) );
 	}
 
 	public function format( array $values ): string {

@@ -332,6 +332,8 @@ final class Panel {
 
 		if ( 'options' === $kind ) {
 			$body = $this->options( $param . '[]', $facet['options'] );
+		} elseif ( 'choices' === $kind ) {
+			$body = $this->choices( $param, $facet['options'] );
 		} elseif ( 'links' === $kind ) {
 			$body = $this->links( $facet['options'] );
 
@@ -382,6 +384,27 @@ final class Panel {
 		}
 
 		return '<ul class="sffilters-options' . ( $tree ? ' sffilters-options--tree' : '' ) . '">' . $items . '</ul>';
+	}
+
+	/**
+	 * Renders a list to pick one from, as radio buttons. The chosen one is marked for the script, which lets
+	 * the shopper give it up by choosing it again.
+	 */
+	private function choices( string $name, array $options ): string {
+		$items = '';
+
+		foreach ( $options as $option ) {
+			$items .= sprintf(
+				'<li class="sffilters-option"><label class="sffilters-option__control"><input type="radio" name="%1$s" value="%2$s"%3$s> <span class="sffilters-option__label">%4$s</span> <span class="sffilters-option__count">%5$s</span></label></li>',
+				esc_attr( $name ),
+				esc_attr( (string) $option['value'] ),
+				$option['selected'] ? ' checked data-sffilters-on' : '',
+				esc_html( (string) $option['label'] ),
+				esc_html( number_format_i18n( (int) $option['count'] ) )
+			);
+		}
+
+		return '<ul class="sffilters-options">' . $items . '</ul>';
 	}
 
 	/**

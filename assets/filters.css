@@ -173,9 +173,70 @@
 	font-weight: 600;
 }
 
-/* Where the system forces its own colours, the browser draws the checkbox. */
+/* Radio buttons are drawn the same way, round, with a dot in the accent colour. */
+
+.sffilters-option__control input[type="radio"] {
+	-webkit-appearance: none;
+	align-self: flex-start;
+	appearance: none;
+	background: #fff;
+	border: 1.5px solid var(--sffilters-border, #767676);
+	border-radius: 50%;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: inline-grid;
+	font-size: inherit;
+	height: 1.25em;
+	line-height: inherit;
+	margin-top: 0.1em;
+	margin-top: calc((1lh - 1.25em) / 2);
+	min-width: 0;
+	padding: 0;
+	place-content: center;
+	transition: border-color 0.12s, box-shadow 0.12s;
+	width: 1.25em;
+}
+
+.sffilters-option__control input[type="radio"]::before {
+	background: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	border-radius: 50%;
+	content: "";
+	height: 0.65em;
+	transform: scale(0);
+	transition: transform 0.12s;
+	width: 0.65em;
+}
+
+.sffilters-option__control:hover input[type="radio"] {
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.18);
+}
+
+.sffilters-option__control input[type="radio"]:checked {
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+}
+
+.sffilters-option__control input[type="radio"]:checked::before {
+	transform: scale(1);
+}
+
+.sffilters-option__control input[type="radio"]:focus-visible {
+	outline: 2px solid var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	outline-offset: 2px;
+}
+
+/* Where the system forces its own colours, the browser draws the checkbox and the radio button. */
 
 @media (forced-colors: active) {
+	.sffilters-option__control input[type="radio"] {
+		-webkit-appearance: auto;
+		appearance: auto;
+	}
+
+	.sffilters-option__control input[type="radio"]::before {
+		display: none;
+	}
+
 	.sffilters-option__control input[type="checkbox"] {
 		-webkit-appearance: auto;
 		appearance: auto;
@@ -553,6 +614,8 @@
 @media (prefers-reduced-motion: reduce) {
 	.sffilters-results,
 	.sffilters-branch__toggle::before,
+	.sffilters-option__control input[type="radio"],
+	.sffilters-option__control input[type="radio"]::before,
 	.sffilters-option__control input[type="checkbox"],
 	.sffilters-option__control input[type="checkbox"]::before {
 		transition: none;

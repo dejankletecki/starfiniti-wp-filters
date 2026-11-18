@@ -122,12 +122,15 @@ final class Cli {
 	 * [--display=<display>]
 	 * : For taxonomies. With `links` each term leads to its own page, for example the category page. With `level` the
 	 * panel lists one level at a time: the subcategories of the page being viewed, or the categories beside it.
+	 * For the price filter, `ranges` offers ready-made ranges and no slider.
 	 * ---
 	 * default: checkboxes
 	 * options:
 	 *   - checkboxes
 	 *   - links
 	 *   - level
+	 *   - slider
+	 *   - ranges
 	 * ---
 	 *
 	 * [--share=<share>]
@@ -234,7 +237,7 @@ final class Cli {
 	}
 
 	/**
-	 * Sets how a taxonomy filter shows its terms.
+	 * Sets how a taxonomy filter shows its terms, or how the price filter shows.
 	 *
 	 * ## OPTIONS
 	 *
@@ -244,11 +247,14 @@ final class Cli {
 	 * <display>
 	 * : With `links` each term leads to its own page, for example the category page. With `level` the panel lists
 	 * one level at a time: the subcategories of the page being viewed, or the categories beside it.
+	 * The price filter takes `slider` or `ranges`: ready-made ranges to pick one from.
 	 * ---
 	 * options:
 	 *   - checkboxes
 	 *   - links
 	 *   - level
+	 *   - slider
+	 *   - ranges
 	 * ---
 	 *
 	 * @param array $args Positional arguments.
@@ -257,14 +263,20 @@ final class Cli {
 		$filters = Settings::definitions();
 		$index   = $this->find( $filters, $args[0] );
 
-		if ( 'taxonomy' !== $filters[ $index ]['source'] ) {
-			WP_CLI::error( 'Only taxonomy filters can be shown as links.' );
+		$price = in_array( $args[1], array( 'slider', 'ranges' ), true );
+
+		if ( 'price' === $filters[ $index ]['source'] ) {
+			if ( ! $price ) {
+				WP_CLI::error( 'The price filter shows as slider or as ranges.' );
+			}
+		} elseif ( 'taxonomy' !== $filters[ $index ]['source'] || $price ) {
+			WP_CLI::error( 'Only taxonomy filters can be shown as checkboxes or links, and only the price filter as slider or ranges.' );
 		}
 
 		$filters[ $index ]['display'] = $args[1];
 
 		$this->save( array( 'filters' => $filters ) );
-		WP_CLI::success( sprintf( 'The filter "%s" now shows its terms as %s.', $args[0], $args[1] ) );
+		WP_CLI::success( sprintf( 'The filter "%s" now shows as %s.', $args[0], $args[1] ) );
 	}
 
 	/**
