@@ -43,6 +43,7 @@
 
 .sffilters-option__control {
 	align-items: baseline;
+	color: inherit;
 	cursor: pointer;
 	display: flex;
 	gap: 0.6rem;
@@ -57,6 +58,7 @@
 /*
  * Checkboxes are drawn here, so they look the same in every browser and take the accent colour of the store.
  * The box sits in the middle of the first line of its label, whatever the font and line height of the store.
+ * It stays square where the theme gives every input a padding, and the label takes the colour of the panel.
  */
 
 .sffilters-option__control input[type="checkbox"] {
@@ -74,6 +76,8 @@
 	line-height: inherit;
 	margin-top: 0.1em;
 	margin-top: calc((1lh - 1.25em) / 2);
+	min-width: 0;
+	padding: 0;
 	place-content: center;
 	transition: background-color 0.12s, border-color 0.12s, box-shadow 0.12s;
 	width: 1.25em;

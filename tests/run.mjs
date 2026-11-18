@@ -117,6 +117,7 @@ async function shopChecks( expected ) {
 	const styles = readFileSync( 'assets/filters.css', 'utf8' );
 
 	check( 'shop: a checkbox sits in the middle of the first line of its label', /input\[type="checkbox"\] \{[^}]*align-self: flex-start;[^}]*margin-top: calc\(\(1lh - 1\.25em\) \/ 2\);/.test( styles ) && ! /translateY/.test( styles ) );
+	check( 'shop: a checkbox stays square where the theme pads every input', /input\[type="checkbox"\] \{[^}]*min-width: 0;[^}]*padding: 0;/.test( styles ) );
 	check( 'shop: the wrapper keeps the layout of the Breakdance shop element', /\.breakdance-woocommerce > \.sffilters-results \{[^}]*display: inherit;[^}]*flex-flow: inherit;/.test( styles ) );
 	check( 'shop: small screens are marked before the page is drawn', /matchMedia\("\(max-width: 768px\)"\)[^<]*sffilters-mobile/.test( shop.html ) );
 

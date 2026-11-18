@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.4.3
+
+- Fixed checkboxes that came out wider than tall where the theme gives every input a padding, as Bricks does.
+- The labels of the options now take the colour of the panel, not the colour the theme sets for form labels.
+
 ## 1.4.2
 
 - Fixed the checkboxes sitting a little below their labels. The box is now in the middle of the first line of its label, whatever the font and line height of the store.
