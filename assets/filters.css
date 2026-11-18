@@ -775,8 +775,9 @@
 	left: 0;
 	margin-top: 6px;
 	max-height: min(60vh, 420px);
-	max-width: min(360px, calc(100vw - 32px));
-	min-width: 260px;
+	max-width: min(420px, calc(100vw - 32px));
+	min-width: min(300px, calc(100vw - 32px));
+	width: max-content;
 	overflow: auto;
 	padding: 12px 16px;
 	position: absolute;
@@ -858,6 +859,48 @@
 	min-width: 0;
 	padding: 10px 2px 6px;
 	position: static;
+}
+
+/*
+ * Inside the Breakdance shop element the builder styles every label, checkbox and radio button as the fields
+ * of a checkout form: labels become blocks with a line height of one, checked boxes get its own tick. The panel
+ * can sit there, for example the horizontal row added with the WooCommerce loop hook, so its controls are set
+ * back to their own look.
+ */
+
+.breakdance-woocommerce label.sffilters-option__control {
+	color: inherit;
+	display: flex;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+}
+
+.breakdance-woocommerce .sffilters-option__control:not(.sffilters-swatch) input[type="checkbox"],
+.breakdance-woocommerce .sffilters-option__control input[type="radio"] {
+	background: #fff;
+	border: 1.5px solid var(--sffilters-border, #767676);
+	height: 1.25em;
+	width: 1.25em;
+}
+
+.breakdance-woocommerce .sffilters-option__control:not(.sffilters-swatch) input[type="checkbox"] {
+	border-radius: 0.25em;
+}
+
+.breakdance-woocommerce .sffilters-option__control input[type="radio"] {
+	border-radius: 50%;
+}
+
+.breakdance-woocommerce .sffilters-option__control:not(.sffilters-swatch) input[type="checkbox"]:checked {
+	background: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
+}
+
+.breakdance-woocommerce .sffilters-option__control input[type="radio"]:checked {
+	background: #fff;
+	border-color: var(--sffilters-accent, var(--bde-brand-primary-color, #1a1a1a));
 }
 
 /*

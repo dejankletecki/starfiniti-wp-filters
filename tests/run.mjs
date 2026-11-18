@@ -239,6 +239,9 @@ async function propertyChecks( properties ) {
 	check( 'horizontal: the filter under a button is laid over the page, and in the drawer it is a plain list', /\.sffilters-drop__body \{[^}]*position: absolute;/.test( styles ) && /\.sffilters-drawer \.sffilters-drop__body \{[^}]*position: static;/.test( styles ) );
 	check( 'horizontal: the script closes a filter on a click outside it and keeps the open one open', /\.sffilters-drop\[open\]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) && /opened\[ panel\.getAttribute\( 'data-sffilters-panel' \) \]/.test( readFileSync( 'assets/filters.js', 'utf8' ) ) );
 
+	check( 'horizontal: an open filter is as wide as its longest value, within limits', /\.sffilters-drop__body \{[^}]*max-width: min\(420px, calc\(100vw - 32px\)\);[^}]*width: max-content;/.test( styles ) );
+	check( 'breakdance: labels keep their layout inside the shop element of the builder', /\.breakdance-woocommerce label\.sffilters-option__control \{[^}]*display: flex;[^}]*line-height: inherit;/.test( styles ) );
+	check( 'breakdance: checkboxes keep their look there, swatches stay hidden boxes', /\.breakdance-woocommerce \.sffilters-option__control:not\(\.sffilters-swatch\) input\[type="checkbox"\]:checked \{\s*background: var\(--sffilters-accent/.test( styles ) );
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

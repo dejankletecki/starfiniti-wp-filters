@@ -658,7 +658,15 @@
 
 		if ( body ) {
 			drop.classList.remove( 'sffilters-drop--end' );
-			drop.classList.toggle( 'sffilters-drop--end', body.getBoundingClientRect().right > document.documentElement.clientWidth - 8 );
+
+			if ( body.getBoundingClientRect().right > document.documentElement.clientWidth - 8 ) {
+				drop.classList.add( 'sffilters-drop--end' );
+
+				// Not when that pushes it off the other edge.
+				if ( body.getBoundingClientRect().left < 8 ) {
+					drop.classList.remove( 'sffilters-drop--end' );
+				}
+			}
 		}
 	}, true );
 
