@@ -242,6 +242,7 @@ async function propertyChecks( properties ) {
 	check( 'horizontal: an open filter is as wide as its longest value, within limits', /\.sffilters-drop__body \{[^}]*max-width: min\(420px, calc\(100vw - 32px\)\);[^}]*width: max-content;/.test( styles ) );
 	check( 'breakdance: labels keep their layout inside the shop element of the builder', /\.breakdance-woocommerce label\.sffilters-option__control \{[^}]*display: flex;[^}]*line-height: inherit;/.test( styles ) );
 	check( 'breakdance: checkboxes keep their look there, swatches stay hidden boxes', /\.breakdance-woocommerce \.sffilters-option__control:not\(\.sffilters-swatch\) input\[type="checkbox"\]:checked \{\s*background: var\(--sffilters-accent/.test( styles ) );
+	check( 'horizontal: in the drawer an open filter is as wide as the drawer, not as its longest value', /\.sffilters-drawer \.sffilters-drop__body \{[^}]*position: static;\s*width: auto;/.test( styles ) );
 	const pruned = await page( '/shop/?sffilters_test_facet=1' );
 
 	check( 'hooks: a store can leave a value out of a filter', shop.html.includes( 'value="outofstock"' ) && pruned.html.includes( 'value="instock"' ) && ! pruned.html.includes( 'value="outofstock"' ) );

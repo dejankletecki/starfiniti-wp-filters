@@ -859,6 +859,7 @@
 	min-width: 0;
 	padding: 10px 2px 6px;
 	position: static;
+	width: auto;
 }
 
 /*

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.2
+
+- Fixed the horizontal panel in the drawer on small screens: an open filter with a long value was wider than the drawer, so the counts and the arrows of the rows were pushed out of sight.
+
 ## 1.10.1
 
 - Fixed the panel inside the Breakdance shop element, where the horizontal row lands when it is added with the WooCommerce loop hook. The builder styled the labels and checkboxes as checkout fields: a long name wrapped under its checkbox and the count dropped to a line of its own.
